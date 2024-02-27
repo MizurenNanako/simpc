@@ -10,6 +10,9 @@ add_executable(SimpC
 # Link any libraries if needed
 # target_link_libraries(SimpC PRIVATE <library_name>) # Example
 
+# This is why we need cmake 3.16 and higher.
+target_precompile_headers(SimpC PRIVATE header/stdafx.hh)
+
 # Formatting, FORMAT MUST DO.
 add_custom_command(TARGET SimpC PRE_BUILD
     COMMAND clang-format -i -style=file ${CMAKE_CURRENT_SOURCE_DIR}/source/*.cc ${CMAKE_CURRENT_SOURCE_DIR}/source/*.hh
