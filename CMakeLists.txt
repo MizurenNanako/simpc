@@ -1,17 +1,22 @@
-cmake_minimum_required(VERSION 3.5)
-project(MyCompilerProject)
+cmake_minimum_required(VERSION 3.10)
+project(SimpC VERSION 0.1.0 LANGUAGES C CXX)
 
-# 设置C编译器
-set(CMAKE_C_COMPILER gcc) # 可以根据需要更改为其他C编译器
+# Set C++ standard to C++20
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 设置编译选项
-set(CMAKE_C_FLAGS "-Wall -Wextra -std=c11") # 可以根据需要添加其他编译选项
+# Set output directories
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# 添加源文件
-file(GLOB SOURCES "src/*.c")
+# Add include directories
+include_directories(${PROJECT_SOURCE_DIR}/src/header)
 
-# 添加头文件目录
-include_directories(include)
+# Add subdirectories
+add_subdirectory(src)
 
-# 生成可执行文件
-add_executable(my_compiler ${SOURCES})
+# Enable testing
+enable_testing()
+add_subdirectory(src/test)
+
