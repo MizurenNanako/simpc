@@ -14,7 +14,7 @@ add_executable(SimpC
 target_precompile_headers(SimpC PRIVATE header/stdafx.hh)
 
 # Formatting, FORMAT MUST DO.
-add_custom_command(TARGET SimpC PRE_BUILD
+add_custom_target(format
     COMMAND clang-format -i -style=file ${CMAKE_CURRENT_SOURCE_DIR}/source/*.cc ${CMAKE_CURRENT_SOURCE_DIR}/source/*.hh
     COMMENT "If you don't have a clang-format, I will doubt your tidiness."
 )

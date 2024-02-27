@@ -7,12 +7,14 @@
  */
 
 #include <algorithm>
+#include <array>
 #include <concepts>
 #include <cstdint>
 #include <functional>
 #include <iostream>
 #include <list>
 #include <map>
+#include <memory>
 #include <numeric>
 #include <ranges>
 #include <set>
