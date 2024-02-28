@@ -1,6 +1,7 @@
 # Add source files
 add_executable(SimpC
     source/main.cc
+    source/lexer.cc
 )
 
 # Link any external libraries from thirdparty directory
@@ -15,6 +16,6 @@ target_precompile_headers(SimpC PRIVATE header/stdafx.hh)
 
 # Formatting, FORMAT MUST DO.
 add_custom_target(format
-    COMMAND clang-format -i -style=file ${CMAKE_CURRENT_SOURCE_DIR}/source/*.cc ${CMAKE_CURRENT_SOURCE_DIR}/source/*.hh
+    COMMAND clang-format -i -style=file ${CMAKE_CURRENT_SOURCE_DIR}/source/*.cc ${CMAKE_CURRENT_SOURCE_DIR}/header/*.hh
     COMMENT "If you don't have a clang-format, I will doubt your tidiness."
 )
