@@ -12,16 +12,16 @@ namespace simpc
 
         /// @brief Type of a lexical token.
         /// @brief Pair of token_type and optional info.
-        using token_t    = std::pair<token_type,
+        using token_t   = std::pair<token_type,
                                   std::optional<token_info_t>>;
-        using char_type  = char;
-        using _stream    = std::basic_istream<char_type>;
-        using _bufstream = std::basic_stringstream<char_type>;
+        using char_type = char;
+        using _stream   = std::basic_istream<char_type>;
+        using _buffer   = std::basic_string<char_type>;
 
         class tokenizer {
           private:
-            _stream   &_input_stream;
-            _bufstream _tokbuf; // token buffer
+            _stream &_input_stream;
+            _buffer  _tokbuf; // token buffer
 
           public:
             tokenizer(std::istream &input = std::cin);
@@ -43,17 +43,19 @@ enum class simpc::lexer::token_type : int
 // With Info
     identifier,      // [A-Za-z_$]+[A-Za-z0-9_$]*
     zero,            // 0
-    // {suffix} := ((u|U)?(l|L|ll|LL|z|Z)?|(l|L|ll|LL|z|Z)?(u|U)?)
-    literial_dec,    // (+|-)?[1-9][0-9']*{suffix}
-    literial_oct,    // 0[0-9]*{suffix}
-    literial_hex,    //
-    literial_HEX,    //
-    literial_bin,    //
-    literial_char,   //
-    literial_real,   //
-    literial_string, //
+    // {isuffix} := ((u|U)?(l|L|ll|LL|z|Z)?|(l|L|ll|LL|z|Z)?(u|U)?)
+    literial_dec,    // (+|-)?[1-9][0-9']*{isuffix}
+    literial_oct,    // 0[0-9]*{isuffix}
+    literial_hex,    // 0(x|X)[0-9A-Fa-f]*
+    literial_bin,    // 0(b|B)[01]*
+    // {fsuffix} := (f|F|l|L)
+    // {significand} := {wholenumber}.{fraction}|.{fraction}|{wholenumber}.
+    // {exponent} := (e|E|p|P)(+|-)?[0-9]+
+    literial_real,   // {significand}{exponent}?{fsuffix}?
+    // {cchar} := [^'\\\n]|\\'|\\"|\\?|\\\\|\\a|\\b|\\f|\\n|\\r|\\t|\\v|\\x[0-9A-Fa-f]+|\\u[0-9A-Fa-f]{4}
+    literial_char,   // '{cchar}{1,2}'
+    literial_string, // "{cchar}*"
     comment,         // Oh, who want this?
-    attribute,       // It is legal.
 
 // Parenthesis
     LPAREN, // '('
