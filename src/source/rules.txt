@@ -1,0 +1,49 @@
+/*!re2c
+
+re2c:api:style = free-form;
+
+re2c:define:YYCTYPE      = char_type;
+
+re2c:define:YYPEEK       = "peek()";
+re2c:define:YYSKIP       = "skip();";
+re2c:define:YYBACKUP     = "backup();";
+re2c:define:YYRESTORE    = "restore();";
+re2c:define:YYBACKUPCTX  = "backupctx;";
+re2c:define:YYRESTORECTX = "restorectx();";
+re2c:define:YYRESTORETAG = "restoretag();";
+re2c:define:YYLESSTHAN   = "lessthan(@@{len})";
+re2c:define:YYSTAGP      = "stagp(@@{tag});";
+re2c:define:YYSTAGN      = "stagn(@@{tag});";
+re2c:define:YYSHIFT      = "shift(@@{shift});";
+re2c:define:YYSHIFTSTAG  = "shift(@@{tag},@@{shift});";
+
+re2c:define:YYFILL       = "not_enough_input();";
+
+identifier      = [A-Za-z_$]+ [A-Za-z0-9_$]*;
+zero            = [0];
+isuffix         = ([uU]? ([lL] | [lL]{2} | [zZ])? | ([lL] | [lL]{2} | [zZ])? [uU]?);
+literial_dec    = [+-]? [1-9] [0-9']* isuffix;
+literial_oct    = [0] [0-9]+ isuffix;
+literial_hex    = [0] [xX] [0-9A-Fa-f]*;
+literial_bin    = [0] [bB] [01]*;
+fsuffix         = [fFlL];
+wholenumber     = [+-]? [0-9']+;
+fraction        = [0-9']+;
+significand     = (wholenumber [.] fraction) | ([.] fraction) | (wholenumber [.]);
+exponent        = [eEpP] [+-]? [0-9]+;
+literial_real   = significand exponent? fsuffix?;
+cchar           = [^'\\\n] | [\\] ([abfnrtv\\] | ([x] [0-9A-Fa-f]{2}) | ([u] [0-9A-Fa-f]{4}) | ([U] [0-9A-Fa-f]{8}) | [0-7]{3});
+literial_char   = ([uUL] | "u8")? ['] cchar{1,2} ['];
+literial_string = ["] cchar* ["];
+
+identifier      { /* identifier */ }
+zero            { /* zero */ }
+literial_dec    { /* literial_dec */ }
+literial_oct    { /* literial_oct */ }
+literial_hex    { /* literial_hex */ }
+literial_bin    { /* literial_bin */ }
+literial_real   { /* literial_real */ }
+literial_char   { /* literial_char */ }
+literial_string { /* literial_string */ }
+
+*/

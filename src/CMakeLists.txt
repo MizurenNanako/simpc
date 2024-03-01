@@ -19,3 +19,9 @@ add_custom_target(format
     COMMAND clang-format -i -style=file ${CMAKE_CURRENT_SOURCE_DIR}/source/*.cc ${CMAKE_CURRENT_SOURCE_DIR}/header/*.hh
     COMMENT "If you don't have a clang-format, I will doubt your tidiness."
 )
+
+add_custom_target(lexer-gen
+    COMMAND re2c --case-ranges --loop-switch ${CMAKE_CURRENT_SOURCE_DIR}/source/rules.txt -o ${CMAKE_CURRENT_SOURCE_DIR}/source/lexer.ccpart --api custom
+    COMMAND re2c ${CMAKE_CURRENT_SOURCE_DIR}/source/rules.txt -o ${CMAKE_CURRENT_SOURCE_DIR}/source/lexer.debug.dot -D
+    COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/source/lexer.debug.dot | dot -Tpng -o ${CMAKE_CURRENT_SOURCE_DIR}/source/lexer.debug.png
+)

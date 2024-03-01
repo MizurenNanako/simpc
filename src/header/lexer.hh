@@ -8,20 +8,33 @@ namespace simpc
     namespace lexer
     {
         enum class token_type;
-        using token_info_t = std::string;
+
+        using char_type    = char;
+        using token_info_t = std::basic_string<char_type>;
 
         /// @brief Type of a lexical token.
         /// @brief Pair of token_type and optional info.
-        using token_t   = std::pair<token_type,
+        using token_t = std::pair<token_type,
                                   std::optional<token_info_t>>;
-        using char_type = char;
-        using _stream   = std::basic_istream<char_type>;
-        using _buffer   = std::basic_string<char_type>;
+        using _stream = std::basic_istream<char_type>;
+        using _buffer = std::basic_string<char_type>;
+
+        class NotEnoughtInputError : protected std::runtime_error {
+          public:
+            NotEnoughtInputError(size_t lineno, size_t col)
+                : runtime_error(
+                    std::format("Not enough input on line: {} col: {}",
+                                lineno, col)) {}
+            virtual ~NotEnoughtInputError() noexcept = default;
+        };
 
         class tokenizer {
           private:
-            _stream &_input_stream;
+            _stream &_inputs;
             _buffer  _tokbuf; // token buffer
+
+            size_t _lineno = 0; // Line number
+            size_t _cols   = 0; // Column number
 
           public:
             tokenizer(std::istream &input = std::cin);

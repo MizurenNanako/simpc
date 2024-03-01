@@ -1,3 +1,5 @@
 .vscode
 dontsync
 build/*
+lexer.debug.png
+*.dot
