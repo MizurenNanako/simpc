@@ -21,11 +21,21 @@ namespace simpc
 
         class NotEnoughtInputError : protected std::runtime_error {
           public:
-            NotEnoughtInputError(size_t lineno, size_t col)
+            NotEnoughtInputError(const size_t lineno, const size_t col)
                 : runtime_error(
-                    std::format("Not enough input on line: {} col: {}",
+                    std::format("Not enough input on line: {}, col: {}",
                                 lineno, col)) {}
             virtual ~NotEnoughtInputError() noexcept = default;
+        };
+
+        class LexicalError : protected std::runtime_error {
+          public:
+            LexicalError(const size_t lineno, const size_t col,
+                         const std::string_view errlex)
+                : runtime_error(std::format(
+                    "Lexical Error at line: {}, col: {}, error: \"{}\"",
+                    lineno, col, errlex)) {}
+            virtual ~LexicalError() noexcept = default;
         };
 
         class tokenizer {

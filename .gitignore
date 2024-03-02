@@ -2,4 +2,5 @@
 dontsync
 build/*
 lexer.debug.png
+lexer.ccpart
 *.dot

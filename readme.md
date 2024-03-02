@@ -6,9 +6,10 @@ This project should complete the implantation of a C- language compiler, coverin
 
 ### REQUIREMENT
 
-- **gtest** - **Google Test framework** for unit test.
-- **clang-format17** - Code formatting tool from clang project. **THIS IS NECESSARY!!!**
+- **gtest** - **Google Test framework** for unit test. (Should be accessible in `$PATH`.) *Considering to remove this dependency.*
+- **clang-format17** - Code formatting tool from clang project. (Should be accessible in `$PATH`.) **FORMATING IS NECESSARY!!!**
 - **C++20 Standard** - If you're using gcc or mingw64, note that you will need gcc13 or higher for full C++20 support. See [Compiler Support](https://en.cppreference.com/w/cpp/compiler_support/20).
+- **re2c v3.1** - To generate lexer DFA code. (Should be accessible in `$PATH`.)
 
 ### IMPLANTATION DETAILS
 

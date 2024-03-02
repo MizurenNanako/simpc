@@ -36,6 +36,11 @@ cchar           = [^'\\\n] | [\\] ([abfnrtv\\] | ([x] [0-9A-Fa-f]{2}) | ([u] [0-
 literial_char   = ([uUL] | "u8")? ['] cchar{1,2} ['];
 literial_string = ["] cchar* ["];
 
+preprocesser    = [#] [^\r\n]*;
+whitespace      = [ \n\t]*;
+linecomment     = "//" [^\r\n]*;
+blockcomment    = "/\*" ([^\*]* "\*"+ [^\*/])* ([^\*]* "\*"+ | [^\*]*) "\*/";
+
 identifier      { /* identifier */ }
 zero            { /* zero */ }
 literial_dec    { /* literial_dec */ }
@@ -45,5 +50,12 @@ literial_bin    { /* literial_bin */ }
 literial_real   { /* literial_real */ }
 literial_char   { /* literial_char */ }
 literial_string { /* literial_string */ }
+
+preprocesser    { /* preprocesser */ }
+linecomment     { /* linecomment */ }
+blockcomment    { /* blockcomment */}
+
+*               { unexpected(); }
+whitespace      { /* do nothing to skip whitespace */ }
 
 */

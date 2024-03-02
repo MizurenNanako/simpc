@@ -19,8 +19,20 @@ namespace simpc
 
             // todo: Update line number and col number while parsing.
             // todo: Handle white spaces.
+            // todo: Handle backslash-return escape. [Done]
             auto peek =
-                [this] { return _inputs.peek(); };
+                [this] {
+                    auto &&c = _inputs.peek();
+                    if (c == '\\') [[unlikely]]
+                        if (auto cc = _inputs.get();
+                            cc == '\n') [[unlikely]]
+                            c = _inputs.peek();
+                        else {
+                            c = cc;
+                            _inputs.unget();
+                        }
+                    return c;
+                };
             auto skip =
                 [this] { _inputs.get(); };
             auto backup =
@@ -43,10 +55,11 @@ namespace simpc
                 [this](size_t shift) { _inputs.seekg(shift, _inputs.cur); };
             auto shiftstag =
                 [this](std::streampos &tag, std::streamoff shift) { tag += shift; };
-            
+
             auto not_enough_input =
                 [this] { throw NotEnoughtInputError(_lineno, _cols); };
-
+            auto unexpected =
+                [this] { throw LexicalError(_lineno, _cols, _tokbuf); };
         start:
             _tokbuf.clear();
             // retrive a char from stream
