@@ -19,6 +19,8 @@ re2c:define:YYSHIFTSTAG  = "shift(@@{tag},@@{shift});";
 
 re2c:define:YYFILL       = "not_enough_input();";
 
+// defining
+
 identifier      = [A-Za-z_$]+ [A-Za-z0-9_$]*;
 zero            = [0];
 isuffix         = ([uU]? ([lL] | [lL]{2} | [zZ])? | ([lL] | [lL]{2} | [zZ])? [uU]?);
@@ -41,21 +43,122 @@ whitespace      = [ \n\t]*;
 linecomment     = "//" [^\r\n]*;
 blockcomment    = "/\*" ([^\*]* "\*"+ [^\*/])* ([^\*]* "\*"+ | [^\*]*) "\*/";
 
-identifier      { /* identifier */ }
-zero            { /* zero */ }
-literial_dec    { /* literial_dec */ }
-literial_oct    { /* literial_oct */ }
-literial_hex    { /* literial_hex */ }
-literial_bin    { /* literial_bin */ }
-literial_real   { /* literial_real */ }
-literial_char   { /* literial_char */ }
-literial_string { /* literial_string */ }
+// matching
 
-preprocesser    { /* preprocesser */ }
-linecomment     { /* linecomment */ }
-blockcomment    { /* blockcomment */}
+identifier       { /* identifier */ }
+zero             { /* zero */ }
+literial_dec     { /* literial_dec */ }
+literial_oct     { /* literial_oct */ }
+literial_hex     { /* literial_hex */ }
+literial_bin     { /* literial_bin */ }
+literial_real    { /* literial_real */ }
+literial_char    { /* literial_char */ }
+literial_string  { /* literial_string */ }
 
-*               { unexpected(); }
-whitespace      { /* do nothing to skip whitespace */ }
+preprocesser     { /* preprocesser */ }
+linecomment      { /* linecomment */ }
+blockcomment     { /* blockcomment */}
+
+*                { unexpected(); }
+whitespace       { /* do nothing to skip whitespace */ }
+
+"("              { /* LPAREN */ }
+")"              { /* RPAREN */ }
+"["              { /* LBRACK */ }
+"]"              { /* RBRACK */ }
+" {"              { /* LBRACE */ }
+"}"              { /* RBRACE */ }
+
+// Keywords
+// (C98)
+
+"auto"           { /* kw_auto */ }
+"break"          { /* kw_break */ }
+"case"           { /* kw_case */ }
+"char"           { /* kw_char */ }
+"const"          { /* kw_const */ }
+"continue"       { /* kw_continue */ }
+"default"        { /* kw_default */ }
+"do"             { /* kw_do */ }
+"double"         { /* kw_double */ }
+"else"           { /* kw_else */ }
+"enum"           { /* kw_enum */ }
+"extern"         { /* kw_extern */ }
+"float"          { /* kw_float */ }
+"for"            { /* kw_for */ }
+"goto"           { /* kw_goto */ }
+"if"             { /* kw_if */ }
+"int"            { /* kw_int */ }
+"long"           { /* kw_long */ }
+"register"       { /* kw_register */ }
+"return"         { /* kw_return */ }
+"short"          { /* kw_short */ }
+"signed"         { /* kw_signed */ }
+"sizeof"         { /* kw_sizeof */ }
+"static"         { /* kw_static */ }
+"struct"         { /* kw_struct */ }
+"switch"         { /* kw_switch */ }
+"typedef"        { /* kw_typedef */ }
+"union"          { /* kw_union */ }
+"unsigned"       { /* kw_unsigned */ }
+"void"           { /* kw_void */ }
+"volatile"       { /* kw_volatile */ }
+"while"          { /* kw_while */ }
+
+// (C99)
+"_inline"        { /* kw__inline */ }
+"_restrict"      { /* kw__restrict */ }
+"__Bool"         { /* kw___Bool */ }
+"__Complex"      { /* kw___Complex */ }
+"__Imaginary"    { /* kw___Imaginary */ }
+
+// (C11)
+"_Alignas"       { /* kw__Alignas */ }
+"_Alignof"       { /* kw__Alignof */ }
+"_Atomic"        { /* kw__Atomic */ }
+"_Generic"       { /* kw__Generic */ }
+"_Noreturn"      { /* kw__Noreturn */ }
+"_Static_assert" { /* kw__Static_assert */ }
+"_Thread_local"  { /* kw__Thread_local */ }
+
+// Operators
+"="              { /* eq */ }
+"+="             { /* addeq */ }
+"-="             { /* subeq */ }
+"*="             { /* muleq */ }
+"/="             { /* diveq */ }
+"%="             { /* modeq */ }
+"<<="            { /* shleq */ }
+">>="            { /* shreq */ }
+"&="             { /* bitandeq */ }
+"|="             { /* bitoreq */ }
+"^="             { /* bitxoreq */ }
+"++"             { /* inc */ }
+"--"             { /* dec */ }
+"~"              { /* compl */ }
+"+"              { /* add */ }
+"-"              { /* sub */ }
+"*"              { /* mul */ }
+"/"              { /* div */ }
+"%"              { /* mod */ }
+"<<"             { /* shl */ }
+">>"             { /* shr */ }
+"&"              { /* bitand */ }
+"|"              { /* bitor */ }
+"^"              { /* bitxor */ }
+"!"              { /* not */ }
+"&&"             { /* and */ }
+"||"             { /* or */ }
+"=="             { /* eeq */ }
+"!="             { /* neq */ }
+"<"              { /* lt */ }
+">"              { /* gt */ }
+"<="             { /* leq */ }
+">="             { /* geq */ }
+"."              { /* dot */ }
+"->"             { /* to */ }
+","              { /* comma */ }
+"?"              { /* question */ }
+":"              { /* colon */ }
 
 */

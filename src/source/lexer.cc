@@ -20,7 +20,7 @@ namespace simpc
             // todo: Update line number and col number while parsing.
             // todo: Handle white spaces.
             // todo: Handle backslash-return escape. [Done]
-            auto peek =
+            inline auto peek =
                 [this] {
                     auto &&c = _inputs.peek();
                     if (c == '\\') [[unlikely]]
@@ -31,34 +31,38 @@ namespace simpc
                             c = cc;
                             _inputs.unget();
                         }
-                    return c;
+                    return _tokbuf.push_back(c), c;
                 };
-            auto skip =
+            inline auto skip =
                 [this] { _inputs.get(); };
-            auto backup =
+            inline auto backup =
                 [&marker, this] { marker = _inputs.tellg(); };
-            auto restore =
-                [marker, this] { _inputs.seekg(marker); };
-            auto backupctx =
+            inline auto restore =
+                [marker, this] {
+                    _tokbuf.erase(_tokbuf.length()
+                                  - static_cast<size_t>(_inputs.tellg() - marker));
+                    _inputs.seekg(marker);
+                };
+            inline auto backupctx =
                 [&ctxmarker, this] { ctxmarker = _inputs.tellg(); };
-            auto restorectx =
+            inline auto restorectx =
                 [ctxmarker, this] { _inputs.seekg(ctxmarker); };
-            auto restoretag =
-                [this] {};
-            auto lessthan =
+            inline auto restoretag =
+                [this](std::streampos &tag) { _inputs.seekg(tag); };
+            inline auto lessthan =
                 [limit, this](size_t len) { return limit - _inputs.tellg() < len; };
-            auto stagp =
+            inline auto stagp =
                 [this](std::streampos &tag) { tag = _inputs.tellg(); };
-            auto stagn =
+            inline auto stagn =
                 [this](std::streampos &tag) { tag = std::streampos(); };
-            auto shift =
+            inline auto shift =
                 [this](size_t shift) { _inputs.seekg(shift, _inputs.cur); };
-            auto shiftstag =
+            inline auto shiftstag =
                 [this](std::streampos &tag, std::streamoff shift) { tag += shift; };
 
-            auto not_enough_input =
+            inline auto not_enough_input =
                 [this] { throw NotEnoughtInputError(_lineno, _cols); };
-            auto unexpected =
+            inline auto unexpected =
                 [this] { throw LexicalError(_lineno, _cols, _tokbuf); };
         start:
             _tokbuf.clear();
