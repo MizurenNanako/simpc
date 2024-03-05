@@ -16,8 +16,9 @@ re2c:define:YYSTAGP      = "stagp(@@{tag});";
 re2c:define:YYSTAGN      = "stagn(@@{tag});";
 re2c:define:YYSHIFT      = "shift(@@{shift});";
 re2c:define:YYSHIFTSTAG  = "shift(@@{tag},@@{shift});";
+re2c:eof                 = 0;
 
-re2c:define:YYFILL       = "not_enough_input();";
+re2c:define:YYFILL       = "not_enough_input()";
 
 // defining
 
@@ -38,127 +39,150 @@ cchar           = [^'\\\n] | [\\] ([abfnrtv\\] | ([x] [0-9A-Fa-f]{2}) | ([u] [0-
 literial_char   = ([uUL] | "u8")? ['] cchar{1,2} ['];
 literial_string = ["] cchar* ["];
 
-preprocesser    = [#] [^\r\n]*;
-whitespace      = [ \n\t]*;
+preprocesser    = "#" [^\r\n]*;
+whitespace      = [ \t]+;
+newline         = [\n]+;
 linecomment     = "//" [^\r\n]*;
 blockcomment    = "/\*" ([^\*]* "\*"+ [^\*/])* ([^\*]* "\*"+ | [^\*]*) "\*/";
 
 // matching
 
-identifier       { /* identifier */ }
-zero             { /* zero */ }
-literial_dec     { /* literial_dec */ }
-literial_oct     { /* literial_oct */ }
-literial_hex     { /* literial_hex */ }
-literial_bin     { /* literial_bin */ }
-literial_real    { /* literial_real */ }
-literial_char    { /* literial_char */ }
-literial_string  { /* literial_string */ }
+preprocesser     { tok = token_type::preprocesser; goto finish_with_info; }
+linecomment      { tok = token_type::linecomment; goto finish_with_info;  }
+blockcomment     { tok = token_type::blockcomment; goto finish_with_info; }
 
-preprocesser     { /* preprocesser */ }
-linecomment      { /* linecomment */ }
-blockcomment     { /* blockcomment */}
 
-*                { unexpected(); }
-whitespace       { /* do nothing to skip whitespace */ }
+// default
+*                { 
+                    if (!_inputs) tok = token_type::eof; goto finish;
+                    unexpected(); 
+                 }
 
-"("              { /* LPAREN */ }
-")"              { /* RPAREN */ }
-"["              { /* LBRACK */ }
-"]"              { /* RBRACK */ }
-" {"              { /* LBRACE */ }
-"}"              { /* RBRACE */ }
+// whitespace
+whitespace       { 
+                    _inputs >> std::ws; 
+                    skip(); 
+                    yystate = 0; 
+                    continue; 
+                 }
+
+// newline
+newline          { tok = token_type::newline; goto finish; }
+
+//eof
+$                { tok = token_type::eof; goto finish; }
+"\000"           { tok = token_type::eof; goto finish; }
+
+// Parenthesis
+"("              { tok = token_type::LPAREN; goto finish; }
+")"              { tok = token_type::RPAREN; goto finish; }
+"["              { tok = token_type::LBRACK; goto finish; }
+"]"              { tok = token_type::RBRACK; goto finish; }
+"{"              { tok = token_type::LBRACE; goto finish; }
+"}"              { tok = token_type::RBRACE; goto finish; }
 
 // Keywords
 // (C98)
 
-"auto"           { /* kw_auto */ }
-"break"          { /* kw_break */ }
-"case"           { /* kw_case */ }
-"char"           { /* kw_char */ }
-"const"          { /* kw_const */ }
-"continue"       { /* kw_continue */ }
-"default"        { /* kw_default */ }
-"do"             { /* kw_do */ }
-"double"         { /* kw_double */ }
-"else"           { /* kw_else */ }
-"enum"           { /* kw_enum */ }
-"extern"         { /* kw_extern */ }
-"float"          { /* kw_float */ }
-"for"            { /* kw_for */ }
-"goto"           { /* kw_goto */ }
-"if"             { /* kw_if */ }
-"int"            { /* kw_int */ }
-"long"           { /* kw_long */ }
-"register"       { /* kw_register */ }
-"return"         { /* kw_return */ }
-"short"          { /* kw_short */ }
-"signed"         { /* kw_signed */ }
-"sizeof"         { /* kw_sizeof */ }
-"static"         { /* kw_static */ }
-"struct"         { /* kw_struct */ }
-"switch"         { /* kw_switch */ }
-"typedef"        { /* kw_typedef */ }
-"union"          { /* kw_union */ }
-"unsigned"       { /* kw_unsigned */ }
-"void"           { /* kw_void */ }
-"volatile"       { /* kw_volatile */ }
-"while"          { /* kw_while */ }
+"auto"           { tok = token_type::kw_auto; goto finish;      }
+"break"          { tok = token_type::kw_break; goto finish;     }
+"case"           { tok = token_type::kw_case; goto finish;      }
+"char"           { tok = token_type::kw_char; goto finish;      }
+"const"          { tok = token_type::kw_const; goto finish;     }
+"continue"       { tok = token_type::kw_continue; goto finish;  }
+"default"        { tok = token_type::kw_default; goto finish;   }
+"do"             { tok = token_type::kw_do; goto finish;        }
+"double"         { tok = token_type::kw_double; goto finish;    }
+"else"           { tok = token_type::kw_else; goto finish;      }
+"enum"           { tok = token_type::kw_enum; goto finish;      }
+"extern"         { tok = token_type::kw_extern; goto finish;    }
+"float"          { tok = token_type::kw_float; goto finish;     }
+"for"            { tok = token_type::kw_for; goto finish;       }
+"goto"           { tok = token_type::kw_goto; goto finish;      }
+"if"             { tok = token_type::kw_if; goto finish;        }
+"int"            { tok = token_type::kw_int; goto finish;       }
+"long"           { tok = token_type::kw_long; goto finish;      }
+"register"       { tok = token_type::kw_register; goto finish;  }
+"return"         { tok = token_type::kw_return; goto finish;    }
+"short"          { tok = token_type::kw_short; goto finish;     }
+"signed"         { tok = token_type::kw_signed; goto finish;    }
+"sizeof"         { tok = token_type::kw_sizeof; goto finish;    }
+"static"         { tok = token_type::kw_static; goto finish;    }
+"struct"         { tok = token_type::kw_struct; goto finish;    }
+"switch"         { tok = token_type::kw_switch; goto finish;    }
+"typedef"        { tok = token_type::kw_typedef; goto finish;   }
+"union"          { tok = token_type::kw_union; goto finish;     }
+"unsigned"       { tok = token_type::kw_unsigned; goto finish;  }
+"void"           { tok = token_type::kw_void; goto finish;      }
+"volatile"       { tok = token_type::kw_volatile; goto finish;  }
+"while"          { tok = token_type::kw_while; goto finish;     }
 
 // (C99)
-"_inline"        { /* kw__inline */ }
-"_restrict"      { /* kw__restrict */ }
-"__Bool"         { /* kw___Bool */ }
-"__Complex"      { /* kw___Complex */ }
-"__Imaginary"    { /* kw___Imaginary */ }
+"_inline"        { tok = token_type::kw_inline; goto finish;     }
+"_restrict"      { tok = token_type::kw_restrict; goto finish;   }
+"__Bool"         { tok = token_type::kw__Bool; goto finish;      }
+"__Complex"      { tok = token_type::kw__Complex; goto finish;   }
+"__Imaginary"    { tok = token_type::kw__Imaginary; goto finish; }
 
 // (C11)
-"_Alignas"       { /* kw__Alignas */ }
-"_Alignof"       { /* kw__Alignof */ }
-"_Atomic"        { /* kw__Atomic */ }
-"_Generic"       { /* kw__Generic */ }
-"_Noreturn"      { /* kw__Noreturn */ }
-"_Static_assert" { /* kw__Static_assert */ }
-"_Thread_local"  { /* kw__Thread_local */ }
+"_Alignas"       { tok = token_type::kw__Alignas; goto finish;       }
+"_Alignof"       { tok = token_type::kw__Alignof; goto finish;       }
+"_Atomic"        { tok = token_type::kw__Atomic; goto finish;        }
+"_Generic"       { tok = token_type::kw__Generic; goto finish;       }
+"_Noreturn"      { tok = token_type::kw__Noreturn; goto finish;      }
+"_Static_assert" { tok = token_type::kw__Static_assert; goto finish; }
+"_Thread_local"  { tok = token_type::kw__Thread_local; goto finish;  }
 
 // Operators
-"="              { /* eq */ }
-"+="             { /* addeq */ }
-"-="             { /* subeq */ }
-"*="             { /* muleq */ }
-"/="             { /* diveq */ }
-"%="             { /* modeq */ }
-"<<="            { /* shleq */ }
-">>="            { /* shreq */ }
-"&="             { /* bitandeq */ }
-"|="             { /* bitoreq */ }
-"^="             { /* bitxoreq */ }
-"++"             { /* inc */ }
-"--"             { /* dec */ }
-"~"              { /* compl */ }
-"+"              { /* add */ }
-"-"              { /* sub */ }
-"*"              { /* mul */ }
-"/"              { /* div */ }
-"%"              { /* mod */ }
-"<<"             { /* shl */ }
-">>"             { /* shr */ }
-"&"              { /* bitand */ }
-"|"              { /* bitor */ }
-"^"              { /* bitxor */ }
-"!"              { /* not */ }
-"&&"             { /* and */ }
-"||"             { /* or */ }
-"=="             { /* eeq */ }
-"!="             { /* neq */ }
-"<"              { /* lt */ }
-">"              { /* gt */ }
-"<="             { /* leq */ }
-">="             { /* geq */ }
-"."              { /* dot */ }
-"->"             { /* to */ }
-","              { /* comma */ }
-"?"              { /* question */ }
-":"              { /* colon */ }
+"="              { tok = token_type::op_eq; goto finish;       }
+"+="             { tok = token_type::op_addeq; goto finish;    }
+"-="             { tok = token_type::op_subeq; goto finish;    }
+"*="             { tok = token_type::op_muleq; goto finish;    }
+"/="             { tok = token_type::op_diveq; goto finish;    }
+"%="             { tok = token_type::op_modeq; goto finish;    }
+"<<="            { tok = token_type::op_shleq; goto finish;    }
+">>="            { tok = token_type::op_shreq; goto finish;    }
+"&="             { tok = token_type::op_bitandeq; goto finish; }
+"|="             { tok = token_type::op_bitoreq; goto finish;  }
+"^="             { tok = token_type::op_bitxoreq; goto finish; }
+"++"             { tok = token_type::op_inc; goto finish;      }
+"--"             { tok = token_type::op_dec; goto finish;      }
+"~"              { tok = token_type::op_compl; goto finish;    }
+"+"              { tok = token_type::op_add; goto finish;      }
+"-"              { tok = token_type::op_sub; goto finish;      }
+"*"              { tok = token_type::op_mul; goto finish;      }
+"/"              { tok = token_type::op_div; goto finish;      }
+"%"              { tok = token_type::op_mod; goto finish;      }
+"<<"             { tok = token_type::op_shl; goto finish;      }
+">>"             { tok = token_type::op_shr; goto finish;      }
+"&"              { tok = token_type::op_bitand; goto finish;   }
+"|"              { tok = token_type::op_bitor; goto finish;    }
+"^"              { tok = token_type::op_bitxor; goto finish;   }
+"!"              { tok = token_type::op_not; goto finish;      }
+"&&"             { tok = token_type::op_and; goto finish;      }
+"||"             { tok = token_type::op_or; goto finish;       }
+"=="             { tok = token_type::op_eeq; goto finish;      }
+"!="             { tok = token_type::op_neq; goto finish;      }
+"<"              { tok = token_type::op_lt; goto finish;       }
+">"              { tok = token_type::op_gt; goto finish;       }
+"<="             { tok = token_type::op_leq; goto finish;      }
+">="             { tok = token_type::op_geq; goto finish;      }
+"."              { tok = token_type::op_dot; goto finish;      }
+"->"             { tok = token_type::op_to; goto finish;       }
+","              { tok = token_type::op_comma; goto finish;    }
+"?"              { tok = token_type::op_question; goto finish; }
+":"              { tok = token_type::op_colon; goto finish;    }
+";"              { tok = token_type::op_semicolon; goto finish;}
+
+// core
+identifier       { tok = token_type::identifier; goto finish_with_info;      }
+zero             { tok = token_type::zero; goto finish;                      }
+literial_dec     { tok = token_type::literial_dec; goto finish_with_info;    }
+literial_oct     { tok = token_type::literial_oct; goto finish_with_info;    }
+literial_hex     { tok = token_type::literial_hex; goto finish_with_info;    }
+literial_bin     { tok = token_type::literial_bin; goto finish_with_info;    }
+literial_real    { tok = token_type::literial_real; goto finish_with_info;   }
+literial_char    { tok = token_type::literial_char; goto finish_with_info;   }
+literial_string  { tok = token_type::literial_string; goto finish_with_info; }
 
 */

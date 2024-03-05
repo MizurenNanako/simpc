@@ -17,6 +17,6 @@ include_directories(${PROJECT_SOURCE_DIR}/src/header)
 add_subdirectory(src)
 
 # Enable testing
-enable_testing()
-add_subdirectory(src/test)
+# enable_testing()
+# add_subdirectory(src/test)
 

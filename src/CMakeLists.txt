@@ -5,6 +5,12 @@ add_executable(SimpC
 )
 add_dependencies(SimpC lexer-gen)
 
+add_executable(test-lexer
+test/test_lexer.cc
+source/lexer.cc
+)
+add_dependencies(test-lexer lexer-gen)
+
 # Link any external libraries from thirdparty directory
 # add_subdirectory(thirdparty) # Uncomment and configure if needed
 # target_link_libraries(SimpC PUBLIC <external_library_name>) # Example

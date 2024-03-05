@@ -46,9 +46,13 @@ namespace simpc
             size_t _lineno = 0; // Line number
             size_t _cols   = 0; // Column number
 
+            std::streampos _marker;
+            std::streampos _ctxmarker;
+
           public:
             tokenizer(std::istream &input = std::cin);
-            ~tokenizer() = default;
+            tokenizer(tokenizer &) = delete;
+            ~tokenizer()           = default;
 
             /// @brief Get token from bindded input stream.
             /// @return The token_type and info if any.
@@ -62,6 +66,7 @@ enum class simpc::lexer::token_type : int
 {
 // Meta
     err = 0,
+    preprocesser,    // with # preserved
 
 // With Info
     identifier,      // [A-Za-z_$]+[A-Za-z0-9_$]*
@@ -78,7 +83,8 @@ enum class simpc::lexer::token_type : int
     // {cchar} := [^'\\\n]|\\'|\\"|\\?|\\\\|\\a|\\b|\\f|\\n|\\r|\\t|\\v|\\x[0-9A-Fa-f]+|\\u[0-9A-Fa-f]{4}
     literial_char,   // '{cchar}{1,2}'
     literial_string, // "{cchar}*"
-    comment,         // Oh, who want this?
+    linecomment,         // Oh, who want this?
+    blockcomment,        // another one
 
 // Parenthesis
     LPAREN, // '('
@@ -184,6 +190,8 @@ enum class simpc::lexer::token_type : int
     op_question,   // ?
     op_colon,      // :
 
+    op_semicolon,  // ;
+    newline,
     eof = EOF,
 };
 
