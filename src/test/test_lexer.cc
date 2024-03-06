@@ -44,7 +44,7 @@ auto main() -> int
 
     auto tok = simpc::lexer::token_t{};
     for (auto [t, i] : toker)
-    // I am not handling EOF actually, this will be an exception.
+    // Range loop stops at eof or \0
     {
         if (i) cout << format("typeid: {0:i}\ttype: {0:n}\tinfo: \"{1}\"", t, *i);
         else cout << format("typeid: {0:i}\tsymbol: \"{0:n}\"", t);
