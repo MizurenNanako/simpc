@@ -14,6 +14,14 @@ This project should complete the implantation of a C- language compiler, coverin
 ### IMPLANTATION DETAILS
 
 <details>
+<summary>The DFA Graph (6MiB+, 1400+ state transistions)</summary>
+
+![DFA](./document/lexer.debug.png)
+
+</details>
+
+<details>
+<summary>The BNF of C language (228 lines of definition)</summary>
 
 ```bnf
 <translation-unit> ::= {<external-declaration>}*
