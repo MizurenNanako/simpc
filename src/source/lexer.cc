@@ -4,51 +4,47 @@ namespace simpc
 {
     namespace lexer
     {
-        tokenizer::tokenizer(std::istream &input) : _inputs{input} {}
+        tokenizer::tokenizer(std::istream &input)
+            : _lineno{0}, _cols{0}, _inputs{input} {}
 
         auto tokenizer::get_token() -> token_t
-        try
         {
             // Pre-Define
             _marker    = _inputs.tellg();
             _ctxmarker = std::streampos{};
-            _inputs.seekg(_marker);
             _inputs >> std::ws;
 
-            // todo: Update line number and col number while parsing.
-            // todo: Handle white spaces.
-            // todo: Handle backslash-return escape. [Done]
-            auto peek =
-                [this] {
-                    auto &&c = _inputs.peek();
-                    if (c == '\\') [[unlikely]]
-                        if (auto cc = _inputs.get();
-                            cc == '\n') [[unlikely]]
-                            c = _inputs.peek();
-                        else {
-                            c = cc;
-                            _inputs.unget();
-                        }
-                    return _tokbuf.push_back(c), c;
-                };
-            auto skip =
-                [this] { _inputs.get(); };
-            auto backup =
-                [this] { _marker = _inputs.tellg(); };
-            auto restore =
-                [this] {
-                    _tokbuf.erase(_tokbuf.length()
-                                  - static_cast<size_t>(_inputs.tellg() - _marker));
-                    _inputs.seekg(_marker);
-                };
-            auto backupctx =
-                [this] { _ctxmarker = _inputs.tellg(); };
-            auto restorectx =
-                [this] { _inputs.seekg(_ctxmarker); };
+            // todo: Fix line number and col number for parsing.
+            // todo: Fix backslash-return escape. 
+            auto peek = [this] {
+                auto &&c = _inputs.peek();
+                if (c == '\\') [[unlikely]]
+                    if (auto cc = _inputs.get();
+                        cc == '\n') [[unlikely]]
+                    {
+                        c = _inputs.peek();
+                        ++_lineno;
+                        _cols = 0;
+                    }
+                    else {
+                        c = cc;
+                        _inputs.unget();
+                    }
+                return _tokbuf.push_back(c), c;
+            };
+            auto skip    = [this] { _inputs.get(); ++_cols; };
+            auto backup  = [this] { _marker = _inputs.tellg(); };
+            auto restore = [this] {
+                auto &&rlen = static_cast<size_t>(_inputs.tellg() - _marker);
+                _tokbuf.erase(_tokbuf.length() - rlen);
+                _cols -= rlen;
+                _inputs.seekg(_marker);
+            };
+            auto backupctx  = [this] { _ctxmarker = _inputs.tellg(); };
+            auto restorectx = [this] { _inputs.seekg(_ctxmarker); };
             auto restoretag =
                 [this](std::streampos &tag) { _inputs.seekg(tag); };
-            auto lessthan =
-                [this](size_t len) { return false; };
+            auto lessthan = [this](size_t len) { return false; };
             auto stagp =
                 [this](std::streampos &tag) { tag = _inputs.tellg(); };
             auto stagn =
@@ -82,12 +78,6 @@ namespace simpc
         finish_with_info:
             _tokbuf.pop_back();
             return {tok, _tokbuf};
-        } catch (std::exception &e)
-        {
-            std::cerr << std::format("Unknown Exception from {}, what(): {}",
-                                     __func__, e.what())
-                      << std::endl;
-            return {token_type::err, {}};
         }
     } // namespace lexer
 } // namespace simpc
