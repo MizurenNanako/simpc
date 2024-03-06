@@ -37,12 +37,10 @@ e_int(list, 8);
 
 auto main() -> int
 {
-    using simpc::lexer::token_type;
     using std::cout, std::endl, std::format;
     auto ss    = std::istringstream{data};
     auto toker = simpc::lexer::tokenizer{ss};
 
-    auto tok = simpc::lexer::token_t{};
     for (auto [t, i] : toker)
     // Range loop stops at eof or \0
     {
