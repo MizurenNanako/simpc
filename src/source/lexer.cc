@@ -16,7 +16,8 @@ namespace simpc
             _ctxmarker = std::streampos{};
 
             // remove prefix white space
-            while (std::isblank(_inputs.peek())) _inputs.get();
+            while (_inputs.peek() == ' ' || _inputs.peek() == '\t')
+                _cols++, _inputs.get();
 
             // todo: Fix line number and col number for parsing.
             // todo: Fix backslash-return escape.
@@ -36,7 +37,14 @@ namespace simpc
                     }
                 return _tokbuf.push_back(c), c;
             };
-            auto skip    = [this] { _inputs.get(); ++_cols; };
+            auto skip = [this] {
+                ++_cols;
+                if (_inputs.get() == '\n')
+                {
+                    ++_lineno;
+                    _cols = start_cols;
+                }
+            };
             auto backup  = [this] { _marker = _inputs.tellg(); };
             auto restore = [this] {
                 auto &&rlen = static_cast<size_t>(_inputs.tellg() - _marker);

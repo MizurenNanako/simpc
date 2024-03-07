@@ -40,7 +40,6 @@ literial_char   = ([uUL] | "u8")? ['] cchar{1,2} ['];
 literial_string = ["] cchar* ["];
 
 preprocesser    = "#" [^\r\n]*;
-whitespace      = [ \t]+;
 newline         = [\n]+;
 linecomment     = "//" [^\r\n]*;
 blockcomment    = "/\*" ([^\*]* "\*"+ [^\*/])* ([^\*]* "\*"+ | [^\*]*) "\*/";
@@ -58,18 +57,9 @@ blockcomment     { tok = token_type::blockcomment; goto finish_with_info; }
                     unexpected(); 
                  }
 
-// whitespace
-whitespace       { 
-                    skip(); 
-                    yystate = 0; 
-                    continue; 
-                 }
-
 // newline
 newline          { 
                     tok = token_type::newline;
-                    ++_lineno;
-                    _cols = start_cols;
                     goto finish; 
                  }
 

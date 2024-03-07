@@ -4,3 +4,5 @@ build/*
 lexer.debug.png
 # lexer.ccpart
 *.dot
+*.in
+*.out
