@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <exception>
 #include <format>
+#include <fstream>
 #include <functional>
 #include <iostream>
 #include <list>

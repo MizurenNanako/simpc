@@ -263,7 +263,6 @@
                 }
             case 5:
                 {
-                    _inputs >> std::ws;
                     skip();
                     yystate = 0;
                     continue;
@@ -288,6 +287,8 @@
             case 7:
                 {
                     tok = token_type::newline;
+                    ++_lineno;
+                    _cols = start_cols;
                     goto finish;
                 }
             case 8:

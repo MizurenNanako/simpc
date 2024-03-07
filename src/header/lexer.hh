@@ -12,6 +12,9 @@ namespace simpc
         class token_iterator;
         class token_iterator_sentinel {};
 
+        constexpr auto start_lineno = 1;
+        constexpr auto start_cols   = 1;
+
         using char_type    = char;
         using token_info_t = std::basic_string<char_type>;
 

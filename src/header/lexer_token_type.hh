@@ -251,7 +251,8 @@ inline constexpr auto operator*(simpc::lexer::token_type t) -> const char *
         case tt::op_question:       return "?";
         case tt::op_colon:          return ":";
         case tt::op_semicolon:      return ";";
-        default:                    return "unknown";
+        case tt::newline:           return "[newline]";
+        default:                    return "[unknown]";
     }
 }
 

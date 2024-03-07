@@ -60,14 +60,18 @@ blockcomment     { tok = token_type::blockcomment; goto finish_with_info; }
 
 // whitespace
 whitespace       { 
-                    _inputs >> std::ws; 
                     skip(); 
                     yystate = 0; 
                     continue; 
                  }
 
 // newline
-newline          { tok = token_type::newline; goto finish; }
+newline          { 
+                    tok = token_type::newline;
+                    ++_lineno;
+                    _cols = start_cols;
+                    goto finish; 
+                 }
 
 //eof
 $                { tok = token_type::eof; goto finish; }

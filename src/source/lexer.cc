@@ -5,24 +5,28 @@ namespace simpc
     namespace lexer
     {
         tokenizer::tokenizer(std::istream &input)
-            : _lineno{0}, _cols{0}, _inputs{input} {}
+            : _lineno{start_lineno},
+              _cols{start_cols},
+              _inputs{input} {}
 
         auto tokenizer::get_token() -> token_t
         {
             // Pre-Define
             _marker    = _inputs.tellg();
             _ctxmarker = std::streampos{};
-            _inputs >> std::ws;
+
+            // remove prefix white space
+            while (std::isblank(_inputs.peek())) _inputs.get();
 
             // todo: Fix line number and col number for parsing.
-            // todo: Fix backslash-return escape. 
+            // todo: Fix backslash-return escape.
             auto peek = [this] {
                 auto &&c = _inputs.peek();
                 if (c == '\\') [[unlikely]]
-                    if (auto cc = _inputs.get();
+                    if (auto cc = (_inputs.get(), _inputs.peek());
                         cc == '\n') [[unlikely]]
                     {
-                        c = _inputs.peek();
+                        c = (_inputs.get(), _inputs.peek());
                         ++_lineno;
                         _cols = 0;
                     }
@@ -68,15 +72,12 @@ namespace simpc
             auto tok = token_type();
 
             // match keywords or identifier
-            // todo: DFA correctness verification.
 #include "lexer.ccpart"
 
-            // todo: The DFA return is empty until correctness check passes...
-            // This function currently has no functionality.
         finish:
             return {tok, {}};
         finish_with_info:
-            _tokbuf.pop_back();
+            if (tok != token_type::blockcomment) _tokbuf.pop_back();
             return {tok, _tokbuf};
         }
     } // namespace lexer

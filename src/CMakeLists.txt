@@ -9,7 +9,7 @@ add_executable(test-lexer
 test/test_lexer.cc
 source/lexer.cc
 )
-# add_dependencies(test-lexer lexer-gen)
+add_dependencies(test-lexer lexer-gen)
 
 # Link any external libraries from thirdparty directory
 # add_subdirectory(thirdparty) # Uncomment and configure if needed
