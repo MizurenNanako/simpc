@@ -1,8 +1,11 @@
 #ifndef __LEXER
 #define __LEXER
 
-#include "lexer_token_type.hh"
+// precompiled header
 #include "stdafx.hh"
+
+// headers
+#include "lexer_token_type.hh"
 
 namespace simpc
 {

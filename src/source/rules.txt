@@ -167,6 +167,7 @@ $                { tok = token_type::eof; goto finish; }
 "?"              { tok = token_type::op_question; goto finish; }
 ":"              { tok = token_type::op_colon; goto finish;    }
 ";"              { tok = token_type::op_semicolon; goto finish;}
+"..."            { tok = token_type::op_ellipsis; goto finish; }
 
 // core
 identifier       { tok = token_type::identifier; goto finish_with_info;      }

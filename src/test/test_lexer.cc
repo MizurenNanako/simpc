@@ -1,5 +1,4 @@
 #include "lexer.hh"
-#include "stdafx.hh"
 using namespace std::literals;
 
 auto main() -> int
@@ -8,6 +7,8 @@ auto main() -> int
     auto ss    = std::ifstream{"../../src/test/lexer.in"};
     auto oo    = std::ofstream{"../../src/test/lexer.out"};
     auto toker = simpc::lexer::tokenizer{ss};
+
+    if (!ss) throw(std::runtime_error("File ../../src/test/lexer.in not found."s));
 
     for (auto [t, i] : toker)
     // Range loop stops at eof or \0

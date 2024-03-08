@@ -1,6 +1,7 @@
 #ifndef __LEXER_TOKEN_TYPE
 #define __LEXER_TOKEN_TYPE
 
+// precompiled header
 #include "stdafx.hh"
 
 namespace simpc
@@ -141,6 +142,7 @@ enum class simpc::lexer::token_type : int
     op_colon,      // :
 
     op_semicolon,  // ;
+    op_ellipsis,   // ...
     newline,
     eof = EOF,
 };
@@ -251,6 +253,7 @@ inline constexpr auto operator*(simpc::lexer::token_type t) -> const char *
         case tt::op_question:       return "?";
         case tt::op_colon:          return ":";
         case tt::op_semicolon:      return ";";
+        case tt::op_ellipsis:       return "...";
         case tt::newline:           return "[newline]";
         default:                    return "[unknown]";
     }

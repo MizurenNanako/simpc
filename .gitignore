@@ -6,3 +6,4 @@ lexer.debug.png
 *.dot
 *.in
 *.out
+*.gch
