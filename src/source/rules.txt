@@ -40,6 +40,7 @@ literial_char   = ([uUL] | "u8")? ['] cchar{1,2} ['];
 literial_string = ["] cchar* ["];
 
 preprocesser    = "#" [^\r\n]*;
+alt_preprocesser= "%:" [^\r\n]*;
 newline         = [\n]+;
 linecomment     = "//" [^\r\n]*;
 blockcomment    = "/\*" ([^\*]* "\*"+ [^\*/])* ([^\*]* "\*"+ | [^\*]*) "\*/";
@@ -72,8 +73,12 @@ $                { tok = token_type::eof; goto finish; }
 ")"              { tok = token_type::RPAREN; goto finish; }
 "["              { tok = token_type::LBRACK; goto finish; }
 "]"              { tok = token_type::RBRACK; goto finish; }
+"<:"             { tok = token_type::LBRACK; goto finish; }
+":>"             { tok = token_type::RBRACK; goto finish; }
 "{"              { tok = token_type::LBRACE; goto finish; }
 "}"              { tok = token_type::RBRACE; goto finish; }
+"<%"             { tok = token_type::LBRACE; goto finish; }
+"%>"              { tok = token_type::RBRACE; goto finish; }
 
 // Keywords
 // (C98)

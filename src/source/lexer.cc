@@ -85,8 +85,22 @@ namespace simpc
         finish:
             return {tok, {}};
         finish_with_info:
-            if (tok != token_type::blockcomment) _tokbuf.pop_back();
-            return {tok, _tokbuf};
+            switch (tok)
+            {
+                case token_type::preprocesser:
+                    return {tok, _tokbuf.substr(1, _tokbuf.length() - 2)};
+                case token_type::alt_preprocesser:
+                    return {tok, _tokbuf.substr(2, _tokbuf.length() - 2)};
+                case token_type::literial_char:
+                case token_type::literial_string:
+                    return {tok, _tokbuf.substr(1, _tokbuf.length() - 2)};
+                case token_type::linecomment:
+                    return {tok, _tokbuf.substr(2, _tokbuf.length() - 3)};
+                case token_type::blockcomment:
+                    return {tok, _tokbuf.substr(2, _tokbuf.length() - 2)};
+                default:
+                    return {tok, _tokbuf.substr(0, _tokbuf.length() - 1)};
+            }
         }
     } // namespace lexer
 } // namespace simpc

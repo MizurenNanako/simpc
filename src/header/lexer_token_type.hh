@@ -18,6 +18,7 @@ enum class simpc::lexer::token_type : int
 // Meta
     err = 0,
     preprocesser,    // with # preserved
+    alt_preprocesser,// supports %:
 
 // With Info
     identifier,      // [A-Za-z_$]+[A-Za-z0-9_$]*
