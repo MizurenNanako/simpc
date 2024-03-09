@@ -11,6 +11,7 @@
 #include <array>
 #include <concepts>
 #include <cstdint>
+#include <deque>
 #include <exception>
 #include <format>
 #include <fstream>
@@ -35,6 +36,7 @@ namespace simpc
 {
     namespace R = std::ranges;
     using namespace std::literals;
+    class common_iterator_sentinel {};
 
     namespace BASIC_INFO
     {

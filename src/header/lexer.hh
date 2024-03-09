@@ -11,9 +11,17 @@ namespace simpc
 {
     namespace lexer
     {
+        /// @brief Occupies an input stream
+         /// and drain inputs from that stream for each get_token call.
+        /// No rewind and no buffers designed inside.
         class tokenizer;
-        class token_iterator;
-        class token_iterator_sentinel {};
+        class tokenizer_internal_iterator;
+
+        /// @brief Manage tokenizers, may opcupy multi files.
+        /// return preprocessed token for each get_token call.
+        /// Like a normal stream with tokens.
+        class lexical_analyzer;
+        class lexical_iterator;
 
         constexpr auto start_lineno = 1;
         constexpr auto start_cols   = 1;
@@ -22,11 +30,19 @@ namespace simpc
         using token_info_t = std::basic_string<char_type>;
 
         /// @brief Type of a lexical token.
-        /// @brief Pair of token_type and optional info.
-        using token_t = std::pair<token_type,
-                                  std::optional<token_info_t>>;
+        /// Pair of token_type and optional info.
+        using token_t = std::pair<token_type, std::optional<token_info_t>>;
         using _stream = std::basic_istream<char_type>;
         using _buffer = std::basic_string<char_type>;
+
+        class BadFileError : public std::runtime_error {
+          public:
+            BadFileError(const std::string &filename)
+                : runtime_error(
+                    std::format("Failed opening file: {}",
+                                filename)) {}
+            virtual ~BadFileError() noexcept = default;
+        };
 
         class NotEnoughtInputError : public std::runtime_error {
           public:
@@ -47,7 +63,7 @@ namespace simpc
             virtual ~LexicalError() noexcept = default;
         };
 
-        class token_iterator {
+        class tokenizer_internal_iterator {
           public:
             using value_type        = token_t;
             using difference_type   = void;
@@ -60,10 +76,10 @@ namespace simpc
             token_t    _token{};
 
           public:
-            token_iterator(tokenizer &t);
-            ~token_iterator() = default;
-            inline auto operator++() -> token_iterator &;
-            inline auto operator!=(token_iterator_sentinel) -> bool { return _token.first != token_type::eof; }
+            tokenizer_internal_iterator(tokenizer &t);
+            ~tokenizer_internal_iterator() = default;
+            inline auto operator++() -> tokenizer_internal_iterator &;
+            inline auto operator!=(common_iterator_sentinel) -> bool { return _token.first != token_type::eof; }
             inline auto operator*() -> token_t { return _token; }
         };
 
@@ -94,12 +110,60 @@ namespace simpc
 
             inline auto operator&() { return get_pos(); }
 
-            inline auto begin() -> token_iterator { return token_iterator{*this}; }
-            inline auto end() -> token_iterator_sentinel { return {}; };
+            inline auto begin() -> tokenizer_internal_iterator { return tokenizer_internal_iterator{*this}; }
+            inline auto end() -> common_iterator_sentinel { return {}; };
         };
 
-        inline token_iterator::token_iterator(tokenizer &t) : _toker{t}, _token{t.get_token()} {}
-        inline auto token_iterator::operator++() -> token_iterator & { return (_token = _toker.get_token()), *this; }
+        inline tokenizer_internal_iterator::tokenizer_internal_iterator(tokenizer &t) : _toker{t}, _token{t.get_token()} {}
+        inline auto tokenizer_internal_iterator::operator++() -> tokenizer_internal_iterator & { return (_token = _toker.get_token()), *this; }
+
+        class lexical_iterator {
+          public:
+            using value_type        = token_t;
+            using difference_type   = void;
+            using pointer           = token_t *;
+            using reference         = token_t &;
+            using iterator_category = std::forward_iterator_tag;
+
+          private:
+            tokenizer &_toker;
+
+          public:
+            lexical_iterator(tokenizer &t);
+            ~lexical_iterator() = default;
+            inline auto operator++() -> lexical_iterator &;
+            inline auto operator!=(common_iterator_sentinel) -> bool;
+            inline auto operator*() -> token_t;
+        };
+
+        class lexical_analyzer {
+          private:
+            std::deque<token_t>                            _buffer;
+            std::vector<std::pair<std::string, tokenizer>> _toker_pool;
+            // indicates the active toker in _toker_pool
+            int _active_toker_index = 0;
+
+          public:
+            lexical_analyzer(const std::string &filename);
+            lexical_analyzer(lexical_analyzer &) = delete;
+            ~lexical_analyzer()                  = default;
+
+            auto peek() -> token_t;
+            auto get() -> token_t;
+            auto unget() -> void;
+            /// @brief Get parsing position
+            /// @return the filename, line, col.
+            inline auto pos() -> std::tuple<std::string_view, size_t, size_t>
+            {
+                auto &&tmp  = _toker_pool[_active_toker_index];
+                auto &&ttmp = tmp.second.get_pos();
+                return {tmp.first, ttmp.first, ttmp.second};
+            }
+            inline auto operator()() { return get(); };
+            /// @brief Get parsing position
+            /// @return the filename, line, col.
+            inline auto operator&() { return pos(); }
+        };
     } // namespace lexer
 } // namespace simpc
 

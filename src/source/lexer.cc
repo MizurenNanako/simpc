@@ -102,5 +102,23 @@ namespace simpc
                     return {tok, _tokbuf.substr(0, _tokbuf.length() - 1)};
             }
         }
+        lexical_analyzer::lexical_analyzer(const std::string &filename)
+        {
+            // attempt to create main toker
+            auto &&tmp = std::ifstream(filename);
+            if (!tmp.is_open()) throw BadFileError{filename};
+
+        }
+        auto lexical_analyzer::peek() -> token_t
+        {
+            return token_t();
+        }
+        auto lexical_analyzer::unget() -> void
+        {
+        }
+        auto lexical_analyzer::get() -> token_t
+        {
+            return token_t();
+        }
     } // namespace lexer
 } // namespace simpc
