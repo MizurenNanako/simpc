@@ -8,9 +8,9 @@ auto main() -> int
     auto oo    = std::ofstream{"../../src/test/lexer.out"};
     auto toker = simpc::lexer::tokenizer{ss};
 
-    if (!ss) throw(std::runtime_error("File ../../src/test/lexer.in not found."s));
+    if (!ss) throw(std::runtime_error{"File ../../src/test/lexer.in not found."s});
 
-    for (auto [t, i] : toker)
+    for (const auto &[t, i] : toker)
     // Range loop stops at eof or \0
     {
         auto [line, col] = &toker;

@@ -62,7 +62,7 @@ namespace simpc
           public:
             token_iterator(tokenizer &t);
             ~token_iterator() = default;
-            inline auto operator++() -> void;
+            inline auto operator++() -> token_iterator &;
             inline auto operator!=(token_iterator_sentinel) -> bool { return _token.first != token_type::eof; }
             inline auto operator*() -> token_t { return _token; }
         };
@@ -99,7 +99,7 @@ namespace simpc
         };
 
         inline token_iterator::token_iterator(tokenizer &t) : _toker{t}, _token{t.get_token()} {}
-        inline auto token_iterator::operator++() -> void { _token = _toker.get_token(); }
+        inline auto token_iterator::operator++() -> token_iterator & { return (_token = _toker.get_token()), *this; }
     } // namespace lexer
 } // namespace simpc
 

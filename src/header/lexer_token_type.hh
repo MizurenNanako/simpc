@@ -259,7 +259,7 @@ inline constexpr auto operator*(simpc::lexer::token_type t) -> const char *
     }
 }
 
-inline auto operator<<(std::ostream &out, simpc::lexer::token_type t) -> std::ostream & { return out << *t; }
+inline auto operator<<(std::ostream &out, const simpc::lexer::token_type &t) -> std::ostream & { return out << *t; }
 
 template<>
 struct std::formatter<simpc::lexer::token_type, char> {
