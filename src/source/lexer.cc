@@ -87,38 +87,66 @@ namespace simpc
         finish_with_info:
             switch (tok)
             {
+                case token_type::literial_char:
+                case token_type::literial_string:
                 case token_type::preprocesser:
                     return {tok, _tokbuf.substr(1, _tokbuf.length() - 2)};
                 case token_type::alt_preprocesser:
-                    return {tok, _tokbuf.substr(2, _tokbuf.length() - 2)};
-                case token_type::literial_char:
-                case token_type::literial_string:
-                    return {tok, _tokbuf.substr(1, _tokbuf.length() - 2)};
-                case token_type::linecomment:
-                    return {tok, _tokbuf.substr(2, _tokbuf.length() - 3)};
                 case token_type::blockcomment:
                     return {tok, _tokbuf.substr(2, _tokbuf.length() - 2)};
+                case token_type::linecomment:
+                    return {tok, _tokbuf.substr(2, _tokbuf.length() - 3)};
                 default:
                     return {tok, _tokbuf.substr(0, _tokbuf.length() - 1)};
             }
         }
-        lexical_analyzer::lexical_analyzer(const std::string &filename)
+        lexer::lexer(std::istream &context, std::string_view filename)
         {
-            // attempt to create main toker
-            auto &&tmp = std::ifstream(filename);
-            if (!tmp.is_open()) throw BadFileError{filename};
-
+            _tokers.emplace(context);
+            _filenames.emplace(filename);
         }
-        auto lexical_analyzer::peek() -> token_t
+        auto lexer::peek() -> token_t
         {
-            return token_t();
+            if (_lex_buffer.empty())
+            {
+                // refill buffer
+                while (true)
+                {
+                    auto &&tmp = _tokers.top().get_token();
+                    if (is_one_of(tmp.first,
+                                  token_type::blockcomment,
+                                  token_type::linecomment))
+                        // No reason to keep comment at least for now
+                        continue;
+                    else if (is_one_of(
+                                 tmp.first,
+                                 token_type::alt_preprocesser,
+                                 token_type::preprocesser))
+                    {
+                        // todo: trigger preprocessor operation
+                        // alt_prep and prep won't differ in this stage.
+                        break;
+                    }
+                    else if (tmp.first == token_type::identifier) {
+                        // todo: trigger macro check and expansion
+                        break;
+                    }
+                    else if (tmp.first == token_type::eof) {
+                        _lex_buffer.emplace_back(std::move(tmp));
+                        break;
+                    }
+                    else
+                        // get as much token at one time as possible
+                        _lex_buffer.emplace_back(std::move(tmp));
+                }
+            }
+            return _lex_buffer.front();
         }
-        auto lexical_analyzer::unget() -> void
+        auto lexer::get() -> token_t
         {
-        }
-        auto lexical_analyzer::get() -> token_t
-        {
-            return token_t();
+            auto &&tmp = peek();
+            _lex_buffer.pop_front();
+            return tmp; // No need to std::move for std20
         }
     } // namespace lexer
 } // namespace simpc

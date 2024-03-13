@@ -25,6 +25,7 @@
 #include <ranges>
 #include <set>
 #include <sstream>
+#include <stack>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -43,6 +44,12 @@ namespace simpc
         constexpr auto NAME    = "SimpC"s;
         constexpr auto VERSION = "0.0.1"s;
     } // namespace BASIC_INFO
+
+    template<typename T, typename... Args>
+    inline static constexpr auto is_one_of(T a, Args... args)
+    {
+        return (... || (a == args));
+    }
 } // namespace simpc
 
 

@@ -136,33 +136,32 @@ namespace simpc
             inline auto operator*() -> token_t;
         };
 
-        class lexical_analyzer {
+        class lexer {
           private:
-            std::deque<token_t>                            _buffer;
-            std::vector<std::pair<std::string, tokenizer>> _toker_pool;
-            // indicates the active toker in _toker_pool
-            int _active_toker_index = 0;
+            std::deque<token_t>                          _lex_buffer;
+            std::stack<tokenizer>                        _tokers;
+            std::stack<std::string>                      _filenames;
+            std::map<std::string, std::function<void()>> _replacements;
 
           public:
-            lexical_analyzer(const std::string &filename);
-            lexical_analyzer(lexical_analyzer &) = delete;
-            ~lexical_analyzer()                  = default;
+            /**
+             * @brief Construct a new lexer object
+             * to parse on input.
+             * @param context The first input.
+             */
+            lexer(std::istream &context, std::string_view filename);
+            lexer(lexer &) = delete;
+            ~lexer()       = default;
 
-            auto peek() -> token_t;
-            auto get() -> token_t;
-            auto unget() -> void;
-            /// @brief Get parsing position
-            /// @return the filename, line, col.
-            inline auto pos() -> std::tuple<std::string_view, size_t, size_t>
+            auto        peek() -> token_t;
+            auto        get() -> token_t;
+            auto        register_macro(std::string_view name, std::vector<token_t> tokens) -> void;
+            inline auto getpos() -> std::tuple<size_t, size_t, std::string>
             {
-                auto &&tmp  = _toker_pool[_active_toker_index];
-                auto &&ttmp = tmp.second.get_pos();
-                return {tmp.first, ttmp.first, ttmp.second};
+                auto &&[a, b] = _tokers.top().get_pos();
+                return {a, b, _filenames.top()};
             }
-            inline auto operator()() { return get(); };
-            /// @brief Get parsing position
-            /// @return the filename, line, col.
-            inline auto operator&() { return pos(); }
+            inline auto putback(token_t tok) -> void { _lex_buffer.emplace_back(tok); }
         };
     } // namespace lexer
 } // namespace simpc
