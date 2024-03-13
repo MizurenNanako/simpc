@@ -4,9 +4,11 @@ namespace simpc
 {
     namespace lexical
     {
-        tokenizer::tokenizer(std::istream &input)
+        tokenizer::tokenizer(std::istream    &input,
+                             std::string_view filename)
             : _lineno{start_lineno},
               _cols{start_cols},
+              _filename{filename},
               _inputs{input} {}
 
         auto tokenizer::get_token() -> token_t
@@ -72,12 +74,12 @@ namespace simpc
                     return false;
                 };
             auto unexpected =
-                [this] { throw LexicalError(_lineno, _cols, _tokbuf); };
+                [this] { throw LexicalError(_lineno, _cols, _filename, {token_type::err, _tokbuf}); };
         start:
             _tokbuf.clear();
 
             // retrive a char from stream
-            auto tok = token_type();
+            auto tok = token_type::err;
 
             // match keywords or identifier
 #include "lexer.ccpart"
@@ -102,6 +104,7 @@ namespace simpc
         }
         lexer::lexer(std::istream &context, std::string_view filename)
         {
+            // push-in main input
             _tokers.emplace(context);
             _filenames.emplace(filename);
         }
@@ -125,6 +128,7 @@ namespace simpc
                     {
                         // todo: trigger preprocessor operation
                         // alt_prep and prep won't differ in this stage.
+                        preprocess(tmp);
                         break;
                     }
                     else if (tmp.first == token_type::identifier) {
@@ -142,16 +146,44 @@ namespace simpc
             }
             return _lex_buffer.front();
         }
-        auto lexer::get() -> token_t
+
+        auto lexer::preprocess(const token_t &t) -> void
         {
-            auto &&tmp = peek();
-            _lex_buffer.pop_front();
-            return tmp; // No need to std::move for std20
+            if (is_none_of(t, token_type::alt_preprocesser,
+                           token_type::preprocesser))
+            {
+                auto &&[l, c, n] = getpos();
+                throw(LexicalError{l, c, n, t});
+            }
+            // now t ensured to be prep instruction
+            auto &&info = *t.second;
+            if (info.starts_with("define "))
+            {
+                // register_macro
+                // todo: split, parser second part, store first part.
+                // hint: string_view
+            }
+            else if (info.starts_with("include"))
+            {
+                // todo: parse this one
+            }
+            else {
+                auto &&[l, c, n] = getpos();
+                throw(LexicalError{l, c, n, t});
+            }
         }
+
         auto register_macro(std::string_view     name,
                             std::vector<token_t> tokens)
             -> void
         {
+            // todo
         }
-    } // namespace lexer
+
+        auto lexer::add_include(std::istream &context, std::string_view filename) -> void
+        {
+            _tokers.emplace(context);
+            _filenames.emplace(filename);
+        }
+    } // namespace lexical
 } // namespace simpc

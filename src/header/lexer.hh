@@ -56,10 +56,14 @@ namespace simpc
         class LexicalError : public std::runtime_error {
           public:
             LexicalError(const size_t lineno, const size_t col,
-                         const std::string_view errlex)
+                         const std::string_view filename = ""sv,
+                         const token_t          token)
                 : runtime_error(std::format(
-                    "Lexical Error at line: {}, col: {}, error: \"{}\"",
-                    lineno, col, errlex)) {}
+                    "Lexical Error at \"{}\", "
+                    "line: {}, col: {}, error: \"{}\"",
+                    filename, lineno, col,
+                    token.second.value_or(""s)))
+            {}
             virtual ~LexicalError() noexcept = default;
         };
 
@@ -88,14 +92,16 @@ namespace simpc
             size_t _lineno; // Line number
             size_t _cols; // Column number
 
-            _stream &_inputs;
-            _buffer  _tokbuf; // token buffer
+            _stream    &_inputs;
+            _buffer     _tokbuf; // token buffer
+            std::string _filename;
 
             std::streampos _marker;
             std::streampos _ctxmarker;
 
           public:
-            tokenizer(std::istream &input = std::cin);
+            tokenizer(std::istream    &input    = std::cin,
+                      std::string_view filename = ""sv);
             tokenizer(tokenizer &) = delete;
             ~tokenizer()           = default;
 
@@ -153,19 +159,56 @@ namespace simpc
             lexer(lexer &) = delete;
             ~lexer()       = default;
 
+            /// @brief peek a token_t without consuming.
+            /// @return the token
             auto peek() -> token_t;
-            auto get() -> token_t;
-            auto register_macro(std::string_view     name,
-                                std::vector<token_t> tokens) -> void;
+            /// @brief skip the current token.
+            /// @return noreturn
+            inline auto skip() -> void { _lex_buffer.pop_front(); }
+            /// @brief get a token_t and consume it.
+            /// @return the token
+            inline auto get() -> token_t
+            {
+                auto &&tmp = peek();
+                skip();
+                return tmp; // No need to std::move for std20
+            }
 
+            /// @brief run preprocesser with given token,
+            /// can trigger other prep functions.
+            /// @param prep given token
+            /// @return none
+            /// @exception LexicalError if command not found.
+            auto preprocess(const token_t &prep) -> void;
+            /// @brief prep: register a c macro
+            /// @param name macro identifier
+            /// @param tokens macro contents, parsed to tokens.
+            /// @return none
+            auto register_macro(std::string_view     name,
+                                std::vector<token_t> tokens)
+                -> void;
+            /// @brief prep: include a header immediately
+            /// @param context header context in istream
+            /// @param filename header filename, can be "",
+            /// will be use in getpos().
+            /// @return none
+            auto add_include(std::istream    &context,
+                             std::string_view filename)
+                -> void;
+
+            /// @brief get position of current parsing.
+            /// @return (lines, cols, filename)
             inline auto getpos() -> std::tuple<size_t, size_t, std::string>
             {
                 auto &&[a, b] = _tokers.top().get_pos();
                 return {a, b, _filenames.top()};
             }
+            /// @brief put back a token_t to buffer.
+            /// @param tok to be put back
+            /// @return none
             inline auto putback(token_t tok) -> void { _lex_buffer.emplace_back(tok); }
         };
-    } // namespace lexer
+    } // namespace lexical
 } // namespace simpc
 
 #endif // __LEXER

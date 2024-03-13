@@ -50,6 +50,12 @@ namespace simpc
     {
         return (... || (a == args));
     }
+
+    template<typename T, typename... Args>
+    inline static constexpr auto is_none_of(T a, Args... args)
+    {
+        return not is_one_of(a, args...);
+    }
 } // namespace simpc
 
 
