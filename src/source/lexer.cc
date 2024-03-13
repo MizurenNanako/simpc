@@ -2,7 +2,7 @@
 
 namespace simpc
 {
-    namespace lexer
+    namespace lexical
     {
         tokenizer::tokenizer(std::istream &input)
             : _lineno{start_lineno},
@@ -147,6 +147,11 @@ namespace simpc
             auto &&tmp = peek();
             _lex_buffer.pop_front();
             return tmp; // No need to std::move for std20
+        }
+        auto register_macro(std::string_view     name,
+                            std::vector<token_t> tokens)
+            -> void
+        {
         }
     } // namespace lexer
 } // namespace simpc

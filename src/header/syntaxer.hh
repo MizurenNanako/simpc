@@ -10,11 +10,11 @@
 
 namespace simpc
 {
-    namespace syntaxer
+    namespace syntactical
     {
         class NoChildrenError : std::logic_error {
           public:
-            NoChildrenError(const lexer::token_t &_token)
+            NoChildrenError(const lexical::token_t &_token)
                 : logic_error{std::format(
                     "This node({:n}) has no children.",
                     _token.first)} {}
@@ -26,11 +26,11 @@ namespace simpc
 
         class parser {
           private:
-            lexer::tokenizer &_toker;
+            lexical::tokenizer &_toker;
             ast_tree          _ast;
 
           public:
-            parser(lexer::tokenizer &toker);
+            parser(lexical::tokenizer &toker);
             parser(parser &) = delete;
             ~parser()        = default;
 

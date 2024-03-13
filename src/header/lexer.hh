@@ -9,7 +9,7 @@
 
 namespace simpc
 {
-    namespace lexer
+    namespace lexical
     {
         /// @brief Occupies an input stream
          /// and drain inputs from that stream for each get_token call.
@@ -153,9 +153,11 @@ namespace simpc
             lexer(lexer &) = delete;
             ~lexer()       = default;
 
-            auto        peek() -> token_t;
-            auto        get() -> token_t;
-            auto        register_macro(std::string_view name, std::vector<token_t> tokens) -> void;
+            auto peek() -> token_t;
+            auto get() -> token_t;
+            auto register_macro(std::string_view     name,
+                                std::vector<token_t> tokens) -> void;
+
             inline auto getpos() -> std::tuple<size_t, size_t, std::string>
             {
                 auto &&[a, b] = _tokers.top().get_pos();

@@ -6,14 +6,14 @@
 
 namespace simpc
 {
-    namespace lexer
+    namespace lexical
     {
         enum class token_type;
     } // namespace lexer
 
 } // namespace simpc
 
-enum class simpc::lexer::token_type : int
+enum class simpc::lexical::token_type : int
 {
 // Meta
     err = 0,
@@ -148,9 +148,9 @@ enum class simpc::lexer::token_type : int
     eof = EOF,
 };
 
-inline constexpr auto operator*(simpc::lexer::token_type t) -> const char *
+inline constexpr auto operator*(simpc::lexical::token_type t) -> const char *
 {
-    using tt = simpc::lexer::token_type;
+    using tt = simpc::lexical::token_type;
     switch (t)
     {
         case tt::preprocesser:      return "[prep]";
@@ -260,10 +260,10 @@ inline constexpr auto operator*(simpc::lexer::token_type t) -> const char *
     }
 }
 
-inline auto operator<<(std::ostream &out, const simpc::lexer::token_type &t) -> std::ostream & { return out << *t; }
+inline auto operator<<(std::ostream &out, const simpc::lexical::token_type &t) -> std::ostream & { return out << *t; }
 
 template<>
-struct std::formatter<simpc::lexer::token_type, char> {
+struct std::formatter<simpc::lexical::token_type, char> {
     bool name = false;
 
     template<class ParseContext>
@@ -278,7 +278,7 @@ struct std::formatter<simpc::lexer::token_type, char> {
     }
 
     template<class FmtContext>
-    inline FmtContext::iterator format(simpc::lexer::token_type s, FmtContext &ctx) const
+    inline FmtContext::iterator format(simpc::lexical::token_type s, FmtContext &ctx) const
     {
         return std::ranges::copy(
                    std::move(

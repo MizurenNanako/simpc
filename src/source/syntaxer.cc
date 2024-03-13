@@ -1,8 +1,8 @@
 #include "syntaxer.hh"
 
-namespace simpc::syntaxer
+namespace simpc::syntactical
 {
-    parser::parser(lexer::tokenizer &toker) : _toker{toker} {}
+    parser::parser(lexical::tokenizer &toker) : _toker{toker} {}
 
     auto parser::parse() -> void
     {

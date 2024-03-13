@@ -9,7 +9,7 @@
 
 namespace simpc
 {
-    namespace syntaxer
+    namespace syntactical
     {
         namespace impl
         {
@@ -23,7 +23,7 @@ namespace simpc
     } // namespace syntaxer
 } // namespace simpc
 
-enum class simpc::syntaxer::impl::_stmt_node_type : int
+enum class simpc::syntactical::impl::_stmt_node_type : int
 {
     err = 0,
     translation_unit,
@@ -93,7 +93,7 @@ enum class simpc::syntaxer::impl::_stmt_node_type : int
 };
 
 template<typename subiter_t>
-class simpc::syntaxer::impl::_stmt_node_iterator {
+class simpc::syntactical::impl::_stmt_node_iterator {
   private:
     subiter_t true_iter;
 
@@ -115,23 +115,23 @@ class simpc::syntaxer::impl::_stmt_node_iterator {
     inline auto operator*() -> reference { return **true_iter; }
 };
 
-class simpc::syntaxer::impl::_stmt_node {
+class simpc::syntactical::impl::_stmt_node {
   private:
     // the syntax type for this node.
     _stmt_node_type _type;
     // token holds full lexical imformation.
-    lexer::token_t _token;
+    lexical::token_t _token;
     // pointers to children.
     // vector always takes 3 size_t, unique_ptr takes 1 size_t.
     _node_children_t _children;
 
   public:
     _stmt_node(_stmt_node_type       type  = {_stmt_node_type::err},
-               const lexer::token_t &token = {lexer::token_type::err, {}});
+               const lexical::token_t &token = {lexical::token_type::err, {}});
     _stmt_node(_stmt_node &) = delete;
     ~_stmt_node()            = default;
     inline auto type() const -> _stmt_node_type { return _type; }
-    inline auto token() const -> const lexer::token_t & { return _token; }
+    inline auto token() const -> const lexical::token_t & { return _token; }
     inline auto operator[](size_t index) -> _stmt_node & { return *(_children[index]); }
     inline auto operator[](size_t index) const -> _stmt_node & { return *(_children[index]); }
     inline auto at(size_t index) -> _stmt_node &
@@ -152,7 +152,7 @@ class simpc::syntaxer::impl::_stmt_node {
     inline auto crend() const -> _stmt_node_iterator<_node_children_t::const_reverse_iterator> { return _stmt_node_iterator{std::move(_children.crend())}; }
 };
 
-class simpc::syntaxer::ast_tree {
+class simpc::syntactical::ast_tree {
   private:
     // root node must be a translation_unit
     impl::_stmt_node _root;
@@ -168,9 +168,9 @@ class simpc::syntaxer::ast_tree {
 
 };
 
-inline constexpr auto operator*(simpc::syntaxer::impl::_stmt_node_type t) -> const char *
+inline constexpr auto operator*(simpc::syntactical::impl::_stmt_node_type t) -> const char *
 {
-    using tt = simpc::syntaxer::impl::_stmt_node_type;
+    using tt = simpc::syntactical::impl::_stmt_node_type;
     switch (t)
     {
         case tt::err:                        return "{err}";
@@ -242,10 +242,10 @@ inline constexpr auto operator*(simpc::syntaxer::impl::_stmt_node_type t) -> con
     }
 }
 
-inline auto operator<<(std::ostream &out, simpc::syntaxer::impl::_stmt_node_type t) -> std::ostream & { return out << *t; }
+inline auto operator<<(std::ostream &out, simpc::syntactical::impl::_stmt_node_type t) -> std::ostream & { return out << *t; }
 
 template<>
-struct std::formatter<simpc::syntaxer::impl::_stmt_node_type, char> {
+struct std::formatter<simpc::syntactical::impl::_stmt_node_type, char> {
     bool name = false;
 
     template<class ParseContext>
@@ -260,7 +260,7 @@ struct std::formatter<simpc::syntaxer::impl::_stmt_node_type, char> {
     }
 
     template<class FmtContext>
-    inline FmtContext::iterator format(simpc::syntaxer::impl::_stmt_node_type s, FmtContext &ctx) const
+    inline FmtContext::iterator format(simpc::syntactical::impl::_stmt_node_type s, FmtContext &ctx) const
     {
         return std::ranges::copy(
                    std::move(

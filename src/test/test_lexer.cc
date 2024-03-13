@@ -6,7 +6,7 @@ auto main() -> int
     using std::cerr, std::endl, std::format;
     auto ss    = std::ifstream{"../../src/test/lexer.in"};
     auto oo    = std::ofstream{"../../src/test/lexer.out"};
-    auto toker = simpc::lexer::tokenizer{ss};
+    auto toker = simpc::lexical::tokenizer{ss};
 
     if (!ss) throw(std::runtime_error{"File ../../src/test/lexer.in not found."s});
 
@@ -17,7 +17,7 @@ auto main() -> int
         oo << format("[line: {:3}, col: {:3}] -> ", line, col);
         if (i) oo << format("typeid: {0:i}\ttype: {0:n}\tinfo: \"{1}\"", t, *i);
         else oo << format("typeid: {0:i}\tsymbol: \"{0:n}\"", t);
-        if (t == simpc::lexer::token_type::newline) oo << endl;
+        if (t == simpc::lexical::token_type::newline) oo << endl;
         oo << endl;
     }
 
