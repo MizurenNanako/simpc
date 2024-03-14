@@ -17,6 +17,7 @@ enum class simpc::lexical::token_type : int
 {
 // Meta
     err = 0,
+    macro_param,     // not a lexcial symbol, just place holder.
     preprocesser,    // with # preserved
     alt_preprocesser,// supports %:
 

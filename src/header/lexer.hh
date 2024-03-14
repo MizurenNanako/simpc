@@ -145,10 +145,17 @@ namespace simpc
 
         class lexer {
           private:
-            std::deque<token_t>                          _lex_buffer;
-            std::stack<tokenizer>                        _tokers;
-            std::stack<std::string>                      _filenames;
-            std::map<std::string, std::function<void()>> _replacements;
+            std::deque<token_t>     _lex_buffer;
+            std::stack<tokenizer>   _tokers;
+            std::stack<std::string> _filenames;
+
+            // _macros: Str -> (List[token_t] -> List[token_t])
+            // _macro: List[token_t] -> List[token_t]
+            // _macro: parameters |-> expanded_tokens
+            std::map<
+                std::string,
+                std::function<void(const std::vector<token_t> &)>>
+                _macros;
 
           public:
             /**
@@ -182,11 +189,13 @@ namespace simpc
             /// @exception LexicalError if command not found.
             auto preprocess(const token_t &prep) -> void;
             /// @brief prep: register a c macro
-            /// @param name macro identifier
-            /// @param tokens macro contents, parsed to tokens.
+            /// @param name macro identifier [view]
+            /// @param args macro arguments [move]
+            /// @param tokens macro contents, parsed to tokens. [move]
             /// @return none
-            auto register_macro(std::string_view     name,
-                                std::vector<token_t> tokens)
+            auto register_macro(std::string_view       name,
+                                std::vector<token_t> &&args,
+                                std::vector<token_t> &&tokens)
                 -> void;
             /// @brief prep: include a header immediately
             /// @param context header context in istream, moving semantic

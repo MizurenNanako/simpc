@@ -149,10 +149,11 @@ namespace simpc
 
         auto lexer::preprocess(const token_t &t) -> void
         {
-            static constexpr auto report_error = [](auto &&tup, auto &&t) {
-                auto &&[l, c, n] = tup;
-                throw(LexicalError{l, c, n, t});
-            };
+            static constexpr auto report_error =
+                [](auto &&tup, auto &&t) {
+                    auto &&[l, c, n] = tup;
+                    throw(LexicalError{l, c, n, t});
+                };
             if (is_none_of(t, token_type::alt_preprocesser,
                            token_type::preprocesser))
                 report_error(getpos(), t);
@@ -162,14 +163,23 @@ namespace simpc
             if (info.starts_with("define "))
             {
                 // register_macro
-                // todo: split, parser second part, store first part.
-                // hint: string_view
+                // todo: split, store first part, parse second part.
+                // the first space or \t splits the token.
+                auto splitpos = info.find_first_of(" \t", "define "sv.length());
+                if (splitpos == std::string::npos)
+                    // single symbol define
+                {
+                    auto macro_name = std::string_view{info}.substr(0, splitpos);
+                    register_macro(macro_name, {}, {});
+                }
+                else
+                    // todo
+                {
+                }
             }
             else if (info.starts_with("include"))
             {
                 // add_include
-                // todo: parse this one
-
                 auto is_system_header = false;
 
                 // sbuf from existing string won't alloc buffer.
@@ -200,16 +210,21 @@ namespace simpc
 
                 // indeed filename, try to open it.
                 auto &&fmgr = resources::filemanager::instance();
+                // next token will from new input.
                 add_include(fmgr.open_header(filename, is_system_header), filename);
             }
             else report_error(getpos(), t);
         }
 
-        auto register_macro(std::string_view     name,
-                            std::vector<token_t> tokens)
+        auto lexer::register_macro(std::string_view       name,
+                                   std::vector<token_t> &&args,
+                                   std::vector<token_t> &&tokens)
             -> void
         {
             // todo
+            // _macros: Str -> (List[token_t] -> List[token_t])
+            // _macro: List[token_t] -> List[token_t]
+            // _macro: parameters |-> expanded_tokens
         }
 
         auto lexer::add_include(std::istream &&context, std::string_view filename) -> void

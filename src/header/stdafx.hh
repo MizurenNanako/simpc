@@ -57,6 +57,13 @@ namespace simpc
     {
         return not is_one_of(a, args...);
     }
+
+    /// @brief helper view to construct string_view from splited ranges.
+    /// Not necessary in std23, and is O(n).
+    static constexpr auto rng2sv
+        = std::views::transform([](auto &&rng) {
+              return std::string_view(&*rng.begin(), ranges::distance(rng));
+          });
 } // namespace simpc
 
 

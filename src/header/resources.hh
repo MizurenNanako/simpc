@@ -69,8 +69,6 @@ namespace simpc
             }
         };
     } // namespace resources
-
 } // namespace simpc
-
 
 #endif // __RESOURCES
