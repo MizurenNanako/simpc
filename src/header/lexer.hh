@@ -6,6 +6,7 @@
 
 // headers
 #include "lexer_token_type.hh"
+#include "resources.hh"
 
 namespace simpc
 {
@@ -188,11 +189,11 @@ namespace simpc
                                 std::vector<token_t> tokens)
                 -> void;
             /// @brief prep: include a header immediately
-            /// @param context header context in istream
+            /// @param context header context in istream, moving semantic
             /// @param filename header filename, can be "",
             /// will be use in getpos().
             /// @return none
-            auto add_include(std::istream    &context,
+            auto add_include(std::istream   &&context,
                              std::string_view filename)
                 -> void;
 

@@ -149,13 +149,15 @@ namespace simpc
 
         auto lexer::preprocess(const token_t &t) -> void
         {
+            static constexpr auto report_error = [](auto &&tup, auto &&t) {
+                auto &&[l, c, n] = tup;
+                throw(LexicalError{l, c, n, t});
+            };
             if (is_none_of(t, token_type::alt_preprocesser,
                            token_type::preprocesser))
-            {
-                auto &&[l, c, n] = getpos();
-                throw(LexicalError{l, c, n, t});
-            }
-            // now t ensured to be prep instruction
+                report_error(getpos(), t);
+
+                // now t ensured to be prep instruction
             auto &&info = *t.second;
             if (info.starts_with("define "))
             {
@@ -165,12 +167,42 @@ namespace simpc
             }
             else if (info.starts_with("include"))
             {
+                // add_include
                 // todo: parse this one
+
+                auto is_system_header = false;
+
+                // sbuf from existing string won't alloc buffer.
+                auto sbuf = std::stringstream{info};
+                sbuf.seekg(sbuf.beg + "include"sv.length());
+
+                // skip spaces
+                auto ch = sbuf.get();
+                while (not sbuf.eof() and is_none_of(ch, '<', '\"'))
+                    ch = sbuf.get();
+                // should be at < or \"
+                if (sbuf.eof()) report_error(getpos(), t);
+                if (ch == '<') is_system_header = true;
+
+                // get filename
+                auto filename = std::string{20};
+                ch            = sbuf.get();
+                while (not sbuf.eof() and is_none_of(ch, '>', '\"'))
+                {
+                    filename.push_back(ch);
+                    ch = sbuf.get();
+                }
+                // should be at \" or >
+                if (sbuf.eof()) report_error(getpos(), t);
+                if ((ch == '>' and not is_system_header)
+                    or (ch == '\"' and is_system_header))
+                    report_error(getpos(), t);
+
+                // indeed filename, try to open it.
+                auto &&fmgr = resources::filemanager::instance();
+                add_include(fmgr.open_header(filename, is_system_header), filename);
             }
-            else {
-                auto &&[l, c, n] = getpos();
-                throw(LexicalError{l, c, n, t});
-            }
+            else report_error(getpos(), t);
         }
 
         auto register_macro(std::string_view     name,
@@ -180,7 +212,7 @@ namespace simpc
             // todo
         }
 
-        auto lexer::add_include(std::istream &context, std::string_view filename) -> void
+        auto lexer::add_include(std::istream &&context, std::string_view filename) -> void
         {
             _tokers.emplace(context);
             _filenames.emplace(filename);
