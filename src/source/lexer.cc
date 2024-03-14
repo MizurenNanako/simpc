@@ -164,15 +164,18 @@ namespace simpc
             {
                 // register_macro
                 // todo: split, store first part, parse second part.
-                // the first space or \t splits the token.
-                auto splitpos = info.find_first_of(" \t", "define "sv.length());
+                // the first space or \t or ( ends the name token.
+                auto splitpos = info.find_first_of(" \t(", "define "sv.length());
                 if (splitpos == std::string::npos)
-                    // single symbol define
+                    // must be single symbol define
                 {
                     auto macro_name = std::string_view{info}.substr(0, splitpos);
                     register_macro(macro_name, {}, {});
                 }
                 else
+                    // maybe: single with whitespace tail;
+                    // maybe: name with replacement list.
+                    // maybe: macro function with or without replacement list.
                     // todo
                 {
                 }
