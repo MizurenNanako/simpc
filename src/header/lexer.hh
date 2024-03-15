@@ -159,7 +159,9 @@ namespace simpc
                 macro_t(macro_t &) = delete;
                 ~macro_t()         = default;
                 inline auto argcount() -> size_t { return _args_count; }
-                auto        operator()(const std::vector<token_t> &) -> void;
+                auto        operator()() -> void;
+                auto        operator()(const std::vector<
+                                std::vector<token_t>> &) -> void;
             };
 
           private:

@@ -142,7 +142,7 @@ namespace simpc
                             auto &&macro = it->second;
                             if (macro.argcount() == 0)
                             {
-                                macro({});
+                                macro();
                                 break;
                             }
 
@@ -151,9 +151,13 @@ namespace simpc
                             auto &&tk = _tokers.top();
 
                             // to match parens ()
+                            if (tk.get_token().first != token_type::LPAREN)
+                                report_error(getpos(), tmp);
                             auto paren_level = 1;
+                            // first ( is skipped.
                             for (auto &&tt : tk)
                             {
+                                
                             }
                         }
                         else
@@ -322,7 +326,20 @@ namespace simpc
                 it->second.reset();
             }
         }
-        auto lexer::macro_t::operator()(const std::vector<token_t> &param) -> void
+        auto lexer::macro_t::operator()() -> void
+        {
+            if (_args_count)
+            {
+                report_error(_parent.getpos(),
+                             {{}, "Not allowed macro parameters"});
+            }
+            for (auto &&m : _tokens)
+            {
+                _parent._lex_buffer.emplace_back(m);
+            }
+        }
+        auto lexer::macro_t::operator()(
+            const std::vector<std::vector<token_t>> &param) -> void
         {
             if (param.size() != _args_count)
             {
@@ -337,7 +354,8 @@ namespace simpc
                     continue;
                 }
                 auto &&index = static_cast<size_t>(it - _tokens.cbegin());
-                _parent._lex_buffer.emplace_back(param[_markers.at(index)]);
+                for (auto &&m : param[_markers.at(index)])
+                    _parent._lex_buffer.emplace_back(std::move(m));
             }
         }
     } // namespace lexical
