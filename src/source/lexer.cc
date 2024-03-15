@@ -21,8 +21,6 @@ namespace simpc
             while (_inputs.peek() == ' ' || _inputs.peek() == '\t')
                 _cols++, _inputs.get();
 
-            // todo: Fix line number and col number for parsing.
-            // todo: Fix backslash-return escape.
             auto peek = [this] {
                 auto &&c = _inputs.peek();
                 if (c == '\\') [[unlikely]]
@@ -126,7 +124,6 @@ namespace simpc
                                  token_type::alt_preprocesser,
                                  token_type::preprocesser))
                     {
-                        // todo: trigger preprocessor operation
                         // alt_prep and prep won't differ in this stage.
                         preprocess(tmp);
                         break;
@@ -266,7 +263,6 @@ namespace simpc
             std::vector<token_t>      &&tokens)
             -> void
         {
-            // todo
             // _macros: Str -> (List[token_t] -> None)
             // _macro: List[token_t] -> List[token_t]
             // _macro: parameters |-> void (expand tokens into buffer)
