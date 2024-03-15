@@ -1,5 +1,11 @@
 #include "lexer.hh"
 
+static constexpr auto report_error =
+    [](auto &&tup, const simpc::lexical::token_t &t) {
+        auto &&[l, c, n] = tup;
+        throw(simpc::lexical::LexicalError{l, c, std::move(n), std::move(t)});
+    };
+
 namespace simpc
 {
     namespace lexical
@@ -129,7 +135,29 @@ namespace simpc
                         break;
                     }
                     else if (tmp.first == token_type::identifier) {
-                        // todo: trigger macro check and expansion
+                        if (auto &&it = _macros.find(tmp.second.value());
+                            it != _macros.end())
+                        {
+                            // macro expansion, single symbol
+                            auto &&macro = it->second;
+                            if (macro.argcount() == 0)
+                            {
+                                macro({});
+                                break;
+                            }
+
+                            // todo
+                            // macro expansion, with parameters
+                            auto &&tk = _tokers.top();
+
+                            // to match parens ()
+                            auto paren_level = 1;
+                            for (auto &&tt : tk)
+                            {
+                            }
+                        }
+                        else
+                            _lex_buffer.emplace_back(std::move(tmp));
                         break;
                     }
                     else if (tmp.first == token_type::eof) {
@@ -146,11 +174,7 @@ namespace simpc
 
         auto lexer::preprocess(const token_t &t) -> void
         {
-            static constexpr auto report_error =
-                [](auto &&tup, auto &&t) {
-                    auto &&[l, c, n] = tup;
-                    throw(LexicalError{l, c, std::move(n), t});
-                };
+
             if (is_none_of(t, token_type::alt_preprocesser,
                            token_type::preprocesser))
                 report_error(getpos(), t);
@@ -267,10 +291,23 @@ namespace simpc
             // _macro: List[token_t] -> List[token_t]
             // _macro: parameters |-> void (expand tokens into buffer)
 
-            // member of closure by value
-            auto args_count = args.size();
+            auto macro = macro_t{*this,
+                                 std::move(args),
+                                 std::move(tokens)};
 
-            // member of closure by value
+            _macros.emplace(name, macro);
+        }
+
+        auto lexer::add_include(std::istream &&context, std::string_view filename) -> void
+        {
+            _tokers.emplace(context);
+            _filenames.emplace(filename);
+        }
+        lexer::macro_t::macro_t(lexer                      &parent,
+                                std::vector<token_info_t> &&args,
+                                std::vector<token_t>      &&tokens)
+            : _parent{parent}, _args_count{args.size()}
+        {
             auto markers = std::map<size_t, size_t>{};
             for (auto it = tokens.begin(); it != tokens.end(); ++it)
             {
@@ -284,35 +321,24 @@ namespace simpc
                 it->first = token_type::err;
                 it->second.reset();
             }
-
-            auto &&macro =
-                [this, args_count, markers, tokens](const std::vector<token_t> &param) {
-                    if (param.size() != args_count)
-                    {
-                        auto &&[a, b, c] = getpos();
-                        throw(LexicalError{
-                            a, b, std::move(c), {{}, "Not enough macro parameters"}
-                        });
-                    }
-                    for (auto it = tokens.cbegin(); it != tokens.cend(); ++it)
-                    {
-                        if (it->first != token_type::err)
-                        {
-                            _lex_buffer.emplace_back(*it);
-                            continue;
-                        }
-                        auto &&index = static_cast<size_t>(it - tokens.cbegin());
-                        _lex_buffer.emplace_back(param[markers.at(index)]);
-                    }
-                };
-
-            _macros.insert(std::make_pair(name, macro));
         }
-
-        auto lexer::add_include(std::istream &&context, std::string_view filename) -> void
+        auto lexer::macro_t::operator()(const std::vector<token_t> &param) -> void
         {
-            _tokers.emplace(context);
-            _filenames.emplace(filename);
+            if (param.size() != _args_count)
+            {
+                report_error(_parent.getpos(),
+                             {{}, "Not enough macro parameters"});
+            }
+            for (auto it = _tokens.cbegin(); it != _tokens.cend(); ++it)
+            {
+                if (it->first != token_type::err)
+                {
+                    _parent._lex_buffer.emplace_back(*it);
+                    continue;
+                }
+                auto &&index = static_cast<size_t>(it - _tokens.cbegin());
+                _parent._lex_buffer.emplace_back(param[_markers.at(index)]);
+            }
         }
     } // namespace lexical
 } // namespace simpc

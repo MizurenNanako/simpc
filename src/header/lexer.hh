@@ -58,7 +58,7 @@ namespace simpc
           public:
             LexicalError(const size_t lineno, const size_t col,
                          const std::string_view filename = ""sv,
-                         const token_t          token)
+                         const token_t        &&token)
                 : runtime_error(std::format(
                     "Lexical Error at \"{}\", "
                     "line: {}, col: {}, error: \"{}\"",
@@ -145,6 +145,24 @@ namespace simpc
 
         class lexer {
           private:
+            class macro_t {
+              private:
+                lexer                   &_parent;
+                size_t                   _args_count;
+                std::map<size_t, size_t> _markers;
+                std::vector<token_t>     _tokens;
+
+              public:
+                macro_t(lexer                      &parent,
+                        std::vector<token_info_t> &&args,
+                        std::vector<token_t>      &&tokens);
+                macro_t(macro_t &) = delete;
+                ~macro_t()         = default;
+                inline auto argcount() -> size_t { return _args_count; }
+                auto        operator()(const std::vector<token_t> &) -> void;
+            };
+
+          private:
             std::deque<token_t>     _lex_buffer;
             std::stack<tokenizer>   _tokers;
             std::stack<std::string> _filenames;
@@ -152,10 +170,7 @@ namespace simpc
             // _macros: Str -> (List[token_t] -> List[token_t])
             // _macro: List[token_t] -> List[token_t]
             // _macro: parameters |-> expanded_tokens (append to buffer)
-            std::map<
-                std::string,
-                std::function<void(const std::vector<token_t> &)>>
-                _macros;
+            std::map<std::string, macro_t> _macros;
 
           public:
             /**
