@@ -163,21 +163,62 @@ namespace simpc
             if (info.starts_with("define "))
             {
                 // register_macro
-                // todo: split, store first part, parse second part.
-                // the first space or \t or ( ends the name token.
-                auto splitpos = info.find_first_of(" \t(", "define "sv.length());
-                if (splitpos == std::string::npos)
-                    // must be single symbol define
+                // maybe: 1. single symbol define
+                // maybe: 2. single with whitespace tail;
+                // maybe: 3. name with replacement list.
+                // maybe: 4. macro function with or without replacement list.
+                auto sbuf  = std::stringstream{info};
+                auto toker = tokenizer{sbuf};
+
+                // all tokens can be get from toker, but the space between
+                // first id and first paren have to be test manually.
+                auto &&t0 = toker.get_token();
+                // should be name
+                if (t0.first != token_type::identifier) // wrong define
+                    report_error(getpos(), t);
+
+                auto lparenpos = info.find_first_of('(');
+                if (lparenpos == std::string::npos
+                    or info.at(lparenpos - 1) == ' ')
                 {
-                    auto macro_name = std::string_view{info}.substr(0, splitpos);
-                    register_macro(macro_name, {}, {});
+                    // no paren appears means this is 1. 2. 3.
+                    auto &&tn = std::vector<token_t>{};
+                    for (auto &&tt : toker)
+                        tn.emplace_back(std::move(tt));
+                    register_macro(*t0.second, {}, std::move(tn));
                 }
                 else
-                    // maybe: single with whitespace tail;
-                    // maybe: name with replacement list.
-                    // maybe: macro function with or without replacement list.
-                    // todo
                 {
+                    // should be 4.
+                    if (toker.get_token().first != token_type::LPAREN)
+                        // wrong symbol
+                        report_error(getpos(), t);
+                    // macro args
+                    auto &&ta = std::vector<token_t>{};
+                    while (true)
+                    {
+                        auto &&t1 = toker.get_token();
+                        if (t1.first == token_type::RPAREN) [[unlikely]]
+                            break; // empty
+                        else if (t1.first == token_type::identifier) // arg
+                        {
+                            ta.emplace_back(std::move(t1));
+                            auto &&t2 = toker.get_token();
+                            if (t2.first == token_type::op_comma) // must be ,
+                                continue;
+                            else if (t2.first == token_type::RPAREN)
+                                break;
+                            else report_error(getpos(), t);
+                        }
+                        else report_error(getpos(), t);
+                    }
+                    // replacement list
+                    auto &&tn = std::vector<token_t>{};
+                    for (auto &&tt : toker)
+                        tn.emplace_back(std::move(tt));
+                    register_macro(*t0.second,
+                                   std::move(ta),
+                                   std::move(tn));
                 }
             }
             else if (info.starts_with("include"))
