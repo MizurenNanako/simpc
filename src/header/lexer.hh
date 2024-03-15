@@ -151,7 +151,7 @@ namespace simpc
 
             // _macros: Str -> (List[token_t] -> List[token_t])
             // _macro: List[token_t] -> List[token_t]
-            // _macro: parameters |-> expanded_tokens
+            // _macro: parameters |-> expanded_tokens (append to buffer)
             std::map<
                 std::string,
                 std::function<void(const std::vector<token_t> &)>>
@@ -193,9 +193,9 @@ namespace simpc
             /// @param args macro arguments [move]
             /// @param tokens macro contents, parsed to tokens. [move]
             /// @return none
-            auto register_macro(std::string_view       name,
-                                std::vector<token_t> &&args,
-                                std::vector<token_t> &&tokens)
+            auto register_macro(std::string_view            name,
+                                std::vector<token_info_t> &&args,
+                                std::vector<token_t>      &&tokens)
                 -> void;
             /// @brief prep: include a header immediately
             /// @param context header context in istream, moving semantic

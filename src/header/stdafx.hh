@@ -60,10 +60,15 @@ namespace simpc
 
     /// @brief helper view to construct string_view from splited ranges.
     /// Not necessary in std23, and is O(n).
-    static constexpr auto rng2sv
+    inline static constexpr auto rng2sv
         = std::views::transform([](auto &&rng) {
               return std::string_view(&*rng.begin(), ranges::distance(rng));
           });
+
+    /// @brief check if container v contains x, mostly in O(n).
+    inline static constexpr auto contains =
+        [](const auto &v, auto &&x)
+        -> bool { return std::find(v.begin(), v.end(), x) != v.end(); };
 } // namespace simpc
 
 

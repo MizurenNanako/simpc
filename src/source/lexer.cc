@@ -152,7 +152,7 @@ namespace simpc
             static constexpr auto report_error =
                 [](auto &&tup, auto &&t) {
                     auto &&[l, c, n] = tup;
-                    throw(LexicalError{l, c, n, t});
+                    throw(LexicalError{l, c, std::move(n), t});
                 };
             if (is_none_of(t, token_type::alt_preprocesser,
                            token_type::preprocesser))
@@ -194,7 +194,7 @@ namespace simpc
                         // wrong symbol
                         report_error(getpos(), t);
                     // macro args
-                    auto &&ta = std::vector<token_t>{};
+                    auto &&ta = std::vector<token_info_t>{};
                     while (true)
                     {
                         auto &&t1 = toker.get_token();
@@ -202,7 +202,7 @@ namespace simpc
                             break; // empty
                         else if (t1.first == token_type::identifier) // arg
                         {
-                            ta.emplace_back(std::move(t1));
+                            ta.emplace_back(std::move(t1.second.value()));
                             auto &&t2 = toker.get_token();
                             if (t2.first == token_type::op_comma) // must be ,
                                 continue;
@@ -260,15 +260,57 @@ namespace simpc
             else report_error(getpos(), t);
         }
 
-        auto lexer::register_macro(std::string_view       name,
-                                   std::vector<token_t> &&args,
-                                   std::vector<token_t> &&tokens)
+        auto lexer::register_macro(
+            std::string_view            name,
+            std::vector<token_info_t> &&args,
+            std::vector<token_t>      &&tokens)
             -> void
         {
             // todo
-            // _macros: Str -> (List[token_t] -> List[token_t])
+            // _macros: Str -> (List[token_t] -> None)
             // _macro: List[token_t] -> List[token_t]
-            // _macro: parameters |-> expanded_tokens
+            // _macro: parameters |-> void (expand tokens into buffer)
+
+            // member of closure by value
+            auto args_count = args.size();
+
+            // member of closure by value
+            auto markers = std::map<size_t, size_t>{};
+            for (auto it = tokens.begin(); it != tokens.end(); ++it)
+            {
+                if (it->first != token_type::identifier) continue;
+                auto &&pos = std::ranges::find(
+                    args, it->second.value());
+                if (pos == args.cend()) continue;
+                // make list [in-token pos, n-th arg]
+                markers.insert(std::make_pair(it - tokens.begin(), pos - args.cbegin()));
+                // simplify some memory usage
+                it->first = token_type::err;
+                it->second.reset();
+            }
+
+            auto &&macro =
+                [this, args_count, markers, tokens](const std::vector<token_t> &param) {
+                    if (param.size() != args_count)
+                    {
+                        auto &&[a, b, c] = getpos();
+                        throw(LexicalError{
+                            a, b, std::move(c), {{}, "Not enough macro parameters"}
+                        });
+                    }
+                    for (auto it = tokens.cbegin(); it != tokens.cend(); ++it)
+                    {
+                        if (it->first != token_type::err)
+                        {
+                            _lex_buffer.emplace_back(*it);
+                            continue;
+                        }
+                        auto &&index = static_cast<size_t>(it - tokens.cbegin());
+                        _lex_buffer.emplace_back(param[markers.at(index)]);
+                    }
+                };
+
+            _macros.insert(std::make_pair(name, macro));
         }
 
         auto lexer::add_include(std::istream &&context, std::string_view filename) -> void
