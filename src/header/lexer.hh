@@ -133,14 +133,15 @@ namespace simpc
             using iterator_category = std::forward_iterator_tag;
 
           private:
-            tokenizer &_toker;
+            lexer  &_lexer;
+            token_t _token{};
 
           public:
-            lexical_iterator(tokenizer &t);
+            lexical_iterator(lexer &t);
             ~lexical_iterator() = default;
             inline auto operator++() -> lexical_iterator &;
-            inline auto operator!=(common_iterator_sentinel) -> bool;
-            inline auto operator*() -> token_t;
+            inline auto operator!=(common_iterator_sentinel) -> bool { return _token.first != token_type::eof; };
+            inline auto operator*() -> token_t { return _token; };
         };
 
         class lexer {
@@ -173,6 +174,7 @@ namespace simpc
             // _macro: List[token_t] -> List[token_t]
             // _macro: parameters |-> expanded_tokens (append to buffer)
             std::map<std::string, macro_t> _macros;
+            friend auto                    _macro_expansion(lexer &l, token_t &&tmp) -> void;
 
           public:
             /**
@@ -235,6 +237,8 @@ namespace simpc
             /// @return none
             inline auto putback(token_t tok) -> void { _lex_buffer.emplace_back(tok); }
         };
+        inline lexical_iterator::lexical_iterator(lexer &t) : _lexer{t}, _token{t.get()} {}
+        inline auto lexical_iterator::operator++() -> lexical_iterator & { return (_token = _lexer.get()), *this; }
     } // namespace lexical
 } // namespace simpc
 

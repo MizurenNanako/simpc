@@ -112,6 +112,70 @@ namespace simpc
             _tokers.emplace(context);
             _filenames.emplace(filename);
         }
+        static auto _macro_expansion(lexer &l, token_t &&tmp) -> void
+        {
+            if (auto &&it = l._macros.find(tmp.second.value());
+                it != l._macros.end())
+            {
+                // macro expansion, single symbol
+                auto &&macro = it->second;
+                if (macro.argcount() == 0)
+                {
+                    macro();
+                    return;
+                }
+
+                // macro expansion, with parameters
+                auto &&tk = l._tokers.top();
+
+                // to match parens ()
+                if (tk.get_token().first != token_type::LPAREN)
+                    report_error(l.getpos(), tmp);
+                // first ( is skipped.
+                auto paren_level = 1;
+
+                auto &&ta = std::vector<std::vector<token_t>>{};
+                while (paren_level)
+                {
+                    auto &&taa = std::vector<token_t>{};
+                    for (auto &&tt : tk)
+                    {
+                        if (tt.first == token_type::RPAREN)
+                        {
+                            --paren_level;
+                            if (!paren_level)
+                                break;
+                            taa.emplace_back(std::move(tt));
+                        }
+                        else if (tt.first == token_type::LPAREN)
+                        {
+                            ++paren_level;
+                            continue;
+                        }
+                        else if (tt.first == token_type::op_comma)
+                            if (paren_level == 1)
+                                break;
+                            else
+                                taa.emplace_back(std::move(tt));
+                        else if (tt.first == token_type::identifier)
+                        {
+                            // recursive expansion, tt will be own inside.
+                            _macro_expansion(l, std::move(tt));
+                        }
+                        else // final case
+                            taa.emplace_back(std::move(tt));
+                    }
+                    // ta can be 0 length, c allows that.
+                    ta.emplace_back(std::move(taa));
+                }
+
+                // parameters done, start expansion
+                macro(ta);
+            }
+            else
+                // not macro, just normal identifier
+                l._lex_buffer.emplace_back(std::move(tmp));
+        }
         auto lexer::peek() -> token_t
         {
             if (_lex_buffer.empty())
@@ -135,38 +199,14 @@ namespace simpc
                         break;
                     }
                     else if (tmp.first == token_type::identifier) {
-                        if (auto &&it = _macros.find(tmp.second.value());
-                            it != _macros.end())
-                        {
-                            // macro expansion, single symbol
-                            auto &&macro = it->second;
-                            if (macro.argcount() == 0)
-                            {
-                                macro();
-                                break;
-                            }
-
-                            // todo
-                            // macro expansion, with parameters
-                            auto &&tk = _tokers.top();
-
-                            // to match parens ()
-                            if (tk.get_token().first != token_type::LPAREN)
-                                report_error(getpos(), tmp);
-                            auto paren_level = 1;
-                            // first ( is skipped.
-                            for (auto &&tt : tk)
-                            {
-                                
-                            }
-                        }
-                        else
-                            _lex_buffer.emplace_back(std::move(tmp));
+                        // todo make a func call
+                        // the function should own tmp.
+                        _macro_expansion(*this, std::move(tmp));
                         break;
                     }
                     else if (tmp.first == token_type::eof) {
                         _lex_buffer.emplace_back(std::move(tmp));
-                        break;
+                        break; // forever breaking point
                     }
                     else
                         // get as much token at one time as possible
@@ -328,15 +368,10 @@ namespace simpc
         }
         auto lexer::macro_t::operator()() -> void
         {
-            if (_args_count)
-            {
-                report_error(_parent.getpos(),
-                             {{}, "Not allowed macro parameters"});
-            }
+            if (_args_count) report_error(_parent.getpos(),
+                                          {{}, "Not allowed macro parameters"});
             for (auto &&m : _tokens)
-            {
                 _parent._lex_buffer.emplace_back(m);
-            }
         }
         auto lexer::macro_t::operator()(
             const std::vector<std::vector<token_t>> &param) -> void
